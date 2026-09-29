@@ -32,8 +32,7 @@ class MainActivity : ComponentActivity() {
                             .isAppearanceLightStatusBars = false
                     }
                     AirControlScreen(
-                        modifier = Modifier.padding(innerPadding),
-                        carType = AirController.CAR_RZC_XP1_YuanJingX1
+                        modifier = Modifier.padding(innerPadding)
                     )
                 }
             }

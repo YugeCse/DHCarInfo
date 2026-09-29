@@ -1,6 +1,5 @@
 package com.car.dh.ui.screen.air
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,8 +24,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +42,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.car.dh.R
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.ActivityLaunch
+import com.car.dh.utils.TempUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlin.time.Duration.Companion.milliseconds
 
 
 // ============================================================
@@ -52,55 +58,63 @@ import com.car.dh.utils.ActivityLaunch
 // ============================================================
 
 @Composable
-fun AirControlScreen(
-    modifier: Modifier = Modifier,
-    carType: Int = AirController.CAR_RZC_XP1_YuanJingX1
-) {
-    val controller = remember(carType) { AirController(carType) }
-    val state = rememberYuanjingAirUiState(controller)
-
+fun AirControlScreen(modifier: Modifier = Modifier) {
+    val viewModel = viewModel<AirControlViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     // ---------- 温度：完全本地维护 ----------
     // 只在首次组合时读一次 DATA，之后用户点 +/- 只改本地值。
     // 如果首次读到无效值（-1/-2/-3 或 0），使用默认温度。
-    var localTemp by remember(controller) {
-        val raw = controller.getTempLeft()
-        mutableFloatStateOf(
+    val localTemp by remember {
+        derivedStateOf {
+            val raw = viewModel.controller.getTempLeft()
             if (raw >= AirController.TEMP_MIN &&
                 raw <= AirController.TEMP_MAX
             ) raw else AirController.TEMP_DEFAULT
-        )
+        }
     }
 
     // ---------- 风量：完全本地维护 ----------
-    var localWind by remember(controller) {
-        val raw = controller.getWindLevel()
-        mutableIntStateOf(
+    val localWind by remember {
+        val raw = viewModel.controller.getWindLevel()
+        derivedStateOf {
             raw.coerceIn(
                 AirController.WIND_MIN,
                 AirController.WIND_MAX
             )
-        )
+        }
     }
     // ---------- A/C：本地预测 ----------
-    var localAc by remember(controller) { mutableStateOf<Int?>(null) }
-    val displayAc = localAc ?: state.ac
-    LaunchedEffect(state.ac) {
-        if (localAc != null && localAc == state.ac) localAc = null
+    var localAc by remember { mutableStateOf<Int?>(null) }
+    val displayAc = localAc ?: uiState.ac
+    LaunchedEffect(uiState.ac) {
+        if (localAc != null && localAc == uiState.ac) localAc = null
     }
 
     // ---------- 循环：本地预测 ----------
-    var localCycle by remember(controller) { mutableStateOf<Int?>(null) }
-    val displayCycle = localCycle ?: state.cycle
-    LaunchedEffect(state.cycle) {
-        if (localCycle != null && localCycle == state.cycle) localCycle = null
+    var localCycle by remember { mutableStateOf<Int?>(null) }
+    val displayCycle = localCycle ?: uiState.cycle
+    LaunchedEffect(uiState.cycle) {
+        if (localCycle != null && localCycle == uiState.cycle) localCycle = null
     }
 
     // ---------- 模式：完全本地维护 ----------
     // 只有"模式切换"命令，没有独立吹风位命令，本地循环显示 5 种状态。
     val modeLabels = listOf("吹面", "吹面+吹脚", "吹脚", "吹脚+除霜", "除霜")
-    var modeIndex by remember(controller) { mutableIntStateOf(0) }
+    var modeIndex by remember { mutableIntStateOf(0) }
     val modeLabel = modeLabels[modeIndex]
-
+    val dataChangeVersion by AirStateDataChange
+        .dataChangeFlow
+        .collectAsStateWithLifecycle()
+    // 兜底轮询：只用来同步开关类状态，不涉及温度/风量
+    LaunchedEffect(
+        viewModel,
+        dataChangeVersion
+    ) {
+        while (isActive) {
+            viewModel.syncAll()
+            delay(300.milliseconds)
+        }
+    }
     Box(
         modifier = Modifier
             .then(modifier)
@@ -128,23 +142,9 @@ fun AirControlScreen(
                             .fillMaxWidth()
                             .weight(1f),
                         temp = localTemp,
-                        onTempUp = {
-                            val next = (localTemp + AirController.TEMP_STEP)
-                                .coerceAtMost(AirController.TEMP_MAX)
-                            if (next != localTemp) {
-                                localTemp = next
-                                controller.increaseTemp()
-                            }
-                        },
-                        onTempDown = {
-                            val next = (localTemp - AirController.TEMP_STEP)
-                                .coerceAtLeast(AirController.TEMP_MIN)
-                            if (next != localTemp) {
-                                localTemp = next
-                                controller.decreaseTemp()
-                            }
-                        },
-                        onRelease = controller::releaseKey,
+                        onTempUp = { viewModel.controller.increaseTemp() },
+                        onTempDown = { viewModel.controller.decreaseTemp() },
+                        onRelease = viewModel.controller::releaseKey,
                     )
                     HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
                     // ---------- 风量 ----------
@@ -160,19 +160,17 @@ fun AirControlScreen(
                                 val next = (localWind + 1)
                                     .coerceAtMost(AirController.WIND_MAX)
                                 if (next != localWind) {
-                                    localWind = next
-                                    controller.setWindLevel(next)
+                                    viewModel.controller.setWindLevel(next)
                                 }
                             },
                             onDownPress = {
                                 val next = (localWind - 1)
                                     .coerceAtLeast(AirController.WIND_MIN)
                                 if (next != localWind) {
-                                    localWind = next
-                                    controller.setWindLevel(next)
+                                    viewModel.controller.setWindLevel(next)
                                 }
                             },
-                            onRelease = controller::releaseKey
+                            onRelease = viewModel.controller::releaseKey
                         )
                     }
                 }
@@ -186,15 +184,15 @@ fun AirControlScreen(
                 PowerButton(
                     modifier = Modifier
                         .size(56.dp),
-                    on = state.power == 1,
-                    onPress = controller::togglePower,
-                    onRelease = controller::releaseKey,
+                    on = uiState.power == 1,
+                    onPress = viewModel.controller::togglePower,
+                    onRelease = viewModel.controller::releaseKey,
                 )
                 FunctionButton(
                     label = "A/C",
-                    active = state.ac == 1,
-                    onPress = controller::toggleAc,
-                    onRelease = controller::releaseKey,
+                    active = uiState.ac == 1,
+                    onPress = viewModel.controller::toggleAc,
+                    onRelease = viewModel.controller::releaseKey,
                     modifier = Modifier.weight(1f)
                 )
                 FunctionButton(
@@ -204,26 +202,28 @@ fun AirControlScreen(
                         else -> "自动"
                     },
                     active = displayAc == 1,
-                    onPress = controller::toggleCycle,
-                    onRelease = controller::releaseKey,
-                    modifier = Modifier.weight(1f)
-                )
-                FunctionButton(
-                    label = "前除霜",
-                    active = state.frontDefrost == 1,
-                    onPress = controller::toggleFrontDefrost,
-                    onRelease = controller::releaseKey,
+                    onPress = viewModel.controller::toggleCycle,
+                    onRelease = viewModel.controller::releaseKey,
                     modifier = Modifier.weight(1f)
                 )
                 FunctionButton(
                     modifier = Modifier.weight(1f),
+                    label = "前除霜",
+                    active = uiState.frontDefrost == 1,
+                    onPress = viewModel.controller::toggleFrontDefrost,
+                    onRelease = viewModel.controller::releaseKey,
+                )
+                FunctionButton(
+                    modifier = Modifier.weight(1f),
                     label = modeLabel,
+                    active = uiState.modeBody == 1 ||
+                            uiState.modeUp == 1 ||
+                            uiState.modeFoot == 1,
                     onPress = {
                         modeIndex = (modeIndex + 1) % modeLabels.size
-                        controller.toggleMode()
+                        viewModel.controller.toggleMode()
                     },
-                    onRelease = controller::releaseKey,
-                    active = state.modeBody == 1 || state.modeUp == 1 || state.modeFoot == 1,
+                    onRelease = viewModel.controller::releaseKey,
                 )
                 Image(
                     modifier = Modifier
@@ -285,7 +285,8 @@ private fun TemperaturePanel(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                modifier = Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 RoundIconButton(symbol = "−", onPress = onTempDown, onRelease = onRelease)
                 RoundIconButton(symbol = "+", onPress = onTempUp, onRelease = onRelease)
@@ -295,7 +296,7 @@ private fun TemperaturePanel(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = formatTemp(temp),
+                    text = TempUtils.formatTemp(temp),
                     color = DHCarInfoTheme.text,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
@@ -309,7 +310,8 @@ private fun TemperaturePanel(
                 )
             }
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                modifier = Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 RoundIconButton(symbol = "−", onPress = onTempDown, onRelease = onRelease)
                 RoundIconButton(symbol = "+", onPress = onTempUp, onRelease = onRelease)
@@ -442,14 +444,6 @@ private fun Modifier.pressRelease(
             onRelease()
         }
     )
-}
-
-@SuppressLint("DefaultLocale")
-private fun formatTemp(temp: Float): String = when {
-    temp <= -2.5f -> "HI"
-    temp <= -1.5f -> "LO"
-    temp <= -0.5f -> "--"
-    else -> String.format("%.1f", temp)
 }
 
 @Preview(device = "spec:parent=pixel_5,orientation=landscape")

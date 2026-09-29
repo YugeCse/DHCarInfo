@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.READ_LOGS" />
 
     <queries>
-        <package android:name="com.syu.ms"/>
+        <package android:name="com.syu.ms" />
         <package android:name="com.syu.canbus" />
     </queries>
 
@@ -44,6 +44,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".AirControlAppWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/air_control_app_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

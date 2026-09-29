@@ -57,7 +57,7 @@ public class ModuleCallbackCanbusProxy extends IModuleCallback.Stub {
                     break;
                 case FinalCanbus.U_AIR_WINDOW_ENABLE /* 1001 */:
                     if (intsOk(ints, 1)) {
-                        AirHelper.airWindowEnable(ints[0]);
+                        // AirHelper.airWindowEnable(ints[0]);
                     }
                     break;
                 case FinalCanbus.U_DOOR_WINDOW_ENABLE /* 1002 */:

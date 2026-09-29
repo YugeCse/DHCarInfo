@@ -1,0 +1,22 @@
+package com.car.dh.canbus.up;
+
+
+import com.car.dh.canbus.UiNotifyEvent;
+import com.car.dh.ipc.RemoteModuleProxy;
+
+/* JADX INFO: loaded from: classes.dex */
+public class DataCanUp {
+    public static final UiNotifyEvent NOTIFY_EVENTS_FILEPATH;
+    public static String mFileUpdatePath;
+    public static final RemoteModuleProxy PROXY = new RemoteModuleProxy();
+    public static final int[] DATA = new int[120];
+    public static final UiNotifyEvent[] NOTIFY_EVENTS = new UiNotifyEvent[120];
+
+    static {
+        for (int i = 0; i < 120; i++) {
+            NOTIFY_EVENTS[i] = new UiNotifyEvent(i);
+        }
+        mFileUpdatePath = "";
+        NOTIFY_EVENTS_FILEPATH = new UiNotifyEvent();
+    }
+}
