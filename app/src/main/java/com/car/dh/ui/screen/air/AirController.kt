@@ -96,10 +96,6 @@ class AirController private constructor(
 
     private fun send(vararg bytes: Int) {
         DataCanbus.PROXY.cmd(C_CONTRAL, bytes, null, null)
-        launch {
-            delay(250.milliseconds)
-            AirControlAppWidget.updateAll()
-        } //发送更新小组件的方法
     }
 
     override val coroutineContext: CoroutineContext
@@ -109,8 +105,9 @@ class AirController private constructor(
         send(*bytes)
         launch {
             delay(500.milliseconds)
-            AirStateDataChange.sendDataChangeMessage()
-        }
+            AirControlAppWidget.updateAll()
+            AirStateDataChange.notifyDataChanged()
+        } //发送更新小组件的方法
     }
 
     fun releaseKey() {
@@ -123,28 +120,39 @@ class AirController private constructor(
     }
 
     // ---------------- 状态读取 ----------------
+    /** 获取空调是否打开，1：已打开 **/
     fun getPower(): Int = DataCanbus.DATA[U_AIR_POWER]
 
+    /** 获取 AC 是否打开，1：已打开 **/
     fun getAc(): Int = DataCanbus.DATA[U_AIR_AC]
 
+    /** 获取循环模式，0-外循环，1-内循环，其他：自动 **/
     fun getCycle(): Int = DataCanbus.DATA[U_AIR_CYCLE]
 
+    /** 获取是否是自动模式 **/
     fun getAuto(): Int = DataCanbus.DATA[U_AIR_AUTO]
 
+    /** 获取前档除雾是否开启，1：已开启 **/
     fun getFrontDefrost(): Int = DataCanbus.DATA[U_AIR_FRONT]
 
     fun getRearDefrost(): Int = DataCanbus.DATA[U_AIR_REAR]
 
+    /** 获取当前风量 **/
     fun getWindLevel(): Int = DataCanbus.DATA[U_AIR_WIND_LEVEL_LEFT]
 
+    /** 获取风向，迎面吹 **/
     fun getBlowUp(): Int = DataCanbus.DATA[U_AIR_BLOW_UP_LEFT]
 
+    /** 获取风向，吹面+吹脚 **/
     fun getBlowBody(): Int = DataCanbus.DATA[U_AIR_BLOW_BODY_LEFT]
 
+    /** 获取风向，吹脚 **/
     fun getBlowFoot(): Int = DataCanbus.DATA[U_AIR_BLOW_FOOT_LEFT]
 
+    /** 获取左边温度 **/
     fun getTempLeft(): Float = convertTemp(DataCanbus.DATA[U_AIR_TEMP_LEFT])
 
+    /** 获取右边温度 **/
     fun getTempRight(): Float = convertTemp(DataCanbus.DATA[uAirTempRight])
 
     private fun convertTemp(raw: Int): Float {

@@ -54,7 +54,7 @@ class CallbackCanbus : CallbackCanbusBase(),
         // if (updateCode >= 0 && updateCode < 98) {
         HandlerCanbus.update(updateCode, ints)
         launch { AirControlAppWidget.updateAll() }
-        AirStateDataChange.sendDataChangeMessage()
+        AirStateDataChange.notifyDataChanged()
         // }
     }
 }

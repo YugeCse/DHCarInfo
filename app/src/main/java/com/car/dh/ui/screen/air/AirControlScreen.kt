@@ -1,5 +1,7 @@
 package com.car.dh.ui.screen.air
 
+import android.content.res.Configuration
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,7 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.car.dh.R
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.ActivityLaunch
-import com.car.dh.utils.TempUtils
+import com.car.dh.utils.AcAirTempUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.milliseconds
@@ -102,14 +106,8 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
     val modeLabels = listOf("吹面", "吹面+吹脚", "吹脚", "吹脚+除霜", "除霜")
     var modeIndex by remember { mutableIntStateOf(0) }
     val modeLabel = modeLabels[modeIndex]
-    val dataChangeVersion by AirStateDataChange
-        .dataChangeFlow
-        .collectAsStateWithLifecycle()
     // 兜底轮询：只用来同步开关类状态，不涉及温度/风量
-    LaunchedEffect(
-        viewModel,
-        dataChangeVersion
-    ) {
+    LaunchedEffect(viewModel) {
         while (isActive) {
             viewModel.syncAll()
             delay(300.milliseconds)
@@ -137,8 +135,14 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 contentAlignment = Alignment.TopStart
             ) {
                 Column(Modifier.fillMaxSize()) {
+                    val isLandscape =
+                        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
                     TemperaturePanel(
                         modifier = Modifier
+                            .run {
+                                if (!isLandscape) this
+                                else padding(horizontal = 100.dp)
+                            }
                             .fillMaxWidth()
                             .weight(1f),
                         temp = localTemp,
@@ -173,95 +177,82 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             onRelease = viewModel.controller::releaseKey
                         )
                     }
+
+
+                    // ---------- 功能按钮：A/C、循环、前除霜、模式 ----------
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        FunctionButton(
+                            label = when (displayCycle) {
+                                0 -> "外循环"
+                                1 -> "内循环"
+                                else -> "自动"
+                            },
+                            active = displayAc == 1,
+                            onPress = viewModel.controller::toggleCycle,
+                            onRelease = viewModel.controller::releaseKey,
+                            modifier = Modifier.weight(1f)
+                        )
+                        FunctionButton(
+                            modifier = Modifier.weight(1f),
+                            label = "前除霜",
+                            active = uiState.frontDefrost == 1,
+                            onPress = viewModel.controller::toggleFrontDefrost,
+                            onRelease = viewModel.controller::releaseKey,
+                        )
+                        FunctionButton(
+                            modifier = Modifier.weight(1f),
+                            label = modeLabel,
+                            active = uiState.modeBody == 1 ||
+                                    uiState.modeUp == 1 ||
+                                    uiState.modeFoot == 1,
+                            onPress = {
+                                modeIndex = (modeIndex + 1) % modeLabels.size
+                                viewModel.controller.toggleMode()
+                            },
+                            onRelease = viewModel.controller::releaseKey,
+                        )
+                        Image(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(DHCarInfoTheme.inactive)
+                                .padding(8.dp)
+                                .size(42.dp)
+                                //.background(DHCarInfoTheme.panel)
+                                .clickable(onClick = { ActivityLaunch.backHomeDesktop() }),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            painter = painterResource(R.drawable.ic_back_home)
+                        )
+                    }
                 }
             }
-
-            // ---------- 功能按钮：A/C、循环、前除霜、模式 ----------
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                PowerButton(
-                    modifier = Modifier
-                        .size(56.dp),
-                    on = uiState.power == 1,
-                    onPress = viewModel.controller::togglePower,
-                    onRelease = viewModel.controller::releaseKey,
-                )
-                FunctionButton(
-                    label = "A/C",
-                    active = uiState.ac == 1,
-                    onPress = viewModel.controller::toggleAc,
-                    onRelease = viewModel.controller::releaseKey,
-                    modifier = Modifier.weight(1f)
-                )
-                FunctionButton(
-                    label = when (displayCycle) {
-                        0 -> "外循环"
-                        1 -> "内循环"
-                        else -> "自动"
-                    },
-                    active = displayAc == 1,
-                    onPress = viewModel.controller::toggleCycle,
-                    onRelease = viewModel.controller::releaseKey,
-                    modifier = Modifier.weight(1f)
-                )
-                FunctionButton(
-                    modifier = Modifier.weight(1f),
-                    label = "前除霜",
-                    active = uiState.frontDefrost == 1,
-                    onPress = viewModel.controller::toggleFrontDefrost,
-                    onRelease = viewModel.controller::releaseKey,
-                )
-                FunctionButton(
-                    modifier = Modifier.weight(1f),
-                    label = modeLabel,
-                    active = uiState.modeBody == 1 ||
-                            uiState.modeUp == 1 ||
-                            uiState.modeFoot == 1,
-                    onPress = {
-                        modeIndex = (modeIndex + 1) % modeLabels.size
-                        viewModel.controller.toggleMode()
-                    },
-                    onRelease = viewModel.controller::releaseKey,
-                )
-                Image(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(DHCarInfoTheme.inactive)
-                        .padding(8.dp)
-                        .size(42.dp)
-                        //.background(DHCarInfoTheme.panel)
-                        .clickable(onClick = { ActivityLaunch.backHomeDesktop() }),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    painter = painterResource(R.drawable.ic_back_home)
-                )
-            }
         }
+        ImageButton(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .size(56.dp),
+            active = uiState.ac == 1,
+            activeIcon = R.drawable.ic_ac_status_on,
+            inactiveIcon = R.drawable.ic_ac_status_off,
+            onPress = viewModel.controller::toggleAc,
+            onRelease = viewModel.controller::releaseKey,
+        )
+        ImageButton(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .size(56.dp),
+            active = uiState.power == 1,
+            activeIcon = R.drawable.ic_air_status_on,
+            inactiveIcon = R.drawable.ic_air_status_off,
+            onPress = viewModel.controller::togglePower,
+            onRelease = viewModel.controller::releaseKey,
+        )
     }
-}
-
-// ============================================================
-// 组件
-// ============================================================
-
-@Composable
-private fun PowerButton(
-    on: Boolean,
-    onPress: () -> Unit,
-    onRelease: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Image(
-        modifier = Modifier
-            .then(modifier)
-            //.background(DHCarInfoTheme.panel)
-            .pressRelease(onPress, onRelease),
-        contentDescription = null,
-        contentScale = ContentScale.Fit,
-        painter = painterResource(if (on) R.drawable.ic_air_status_on else R.drawable.ic_air_status_off)
-    )
 }
 
 @Composable
@@ -277,8 +268,8 @@ private fun TemperaturePanel(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Text(text = "温度", color = DHCarInfoTheme.subText, fontSize = 13.sp)
-        // Spacer(Modifier.height(4.dp))
+        Text(text = "温度", color = DHCarInfoTheme.subText, fontSize = 13.sp)
+        Spacer(Modifier.height(4.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -288,20 +279,32 @@ private fun TemperaturePanel(
                 modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                RoundIconButton(symbol = "−", onPress = onTempDown, onRelease = onRelease)
-                RoundIconButton(symbol = "+", onPress = onTempUp, onRelease = onRelease)
+                ImageButton(
+                    modifier = Modifier.size(42.dp),
+                    onPress = onTempDown,
+                    onRelease = onRelease,
+                    active = true,
+                    activeIcon = R.drawable.ic_data_decrement,
+                )
+                ImageButton(
+                    modifier = Modifier.size(42.dp),
+                    onPress = onTempUp,
+                    onRelease = onRelease,
+                    active = true,
+                    activeIcon = R.drawable.ic_data_increment,
+                )
             }
             Row(
                 modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = TempUtils.formatTemp(temp),
+                    text = AcAirTempUtils.formatTemp(temp),
                     color = DHCarInfoTheme.text,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    autoSize = TextAutoSize.StepBased()
+                    autoSize = TextAutoSize.StepBased(maxFontSize = 200.sp)
                 )
                 Text(
                     text = "℃",
@@ -313,8 +316,20 @@ private fun TemperaturePanel(
                 modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                RoundIconButton(symbol = "−", onPress = onTempDown, onRelease = onRelease)
-                RoundIconButton(symbol = "+", onPress = onTempUp, onRelease = onRelease)
+                ImageButton(
+                    modifier = Modifier.size(42.dp),
+                    onPress = onTempDown,
+                    onRelease = onRelease,
+                    active = true,
+                    activeIcon = R.drawable.ic_data_decrement,
+                )
+                ImageButton(
+                    modifier = Modifier.size(42.dp),
+                    onPress = onTempUp,
+                    onRelease = onRelease,
+                    active = true,
+                    activeIcon = R.drawable.ic_data_increment,
+                )
             }
         }
     }
@@ -336,7 +351,7 @@ private fun WindPanel(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("风量", color = DHCarInfoTheme.subText, fontSize = 16.sp)
+        Text("风量", color = DHCarInfoTheme.subText, fontSize = 18.sp)
         Row(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
@@ -352,7 +367,7 @@ private fun WindPanel(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(8.dp)
+                        .height(16.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(color)
                 )
@@ -367,9 +382,40 @@ private fun WindPanel(
             modifier = Modifier.width(22.dp),
             textAlign = TextAlign.Center
         )
-        RoundIconButton(symbol = "−", onPress = onDownPress, onRelease = onRelease)
-        RoundIconButton(symbol = "+", onPress = onUpPress, onRelease = onRelease)
+        ImageButton(
+            modifier = Modifier.size(42.dp),
+            onPress = onDownPress,
+            onRelease = onRelease,
+            active = true,
+            activeIcon = R.drawable.ic_data_decrement,
+        )
+        ImageButton(
+            modifier = Modifier.size(42.dp),
+            onPress = onUpPress,
+            onRelease = onRelease,
+            active = true,
+            activeIcon = R.drawable.ic_data_increment,
+        )
     }
+}
+
+@Composable
+private fun ImageButton(
+    modifier: Modifier = Modifier,
+    active: Boolean,
+    @DrawableRes activeIcon: Int,
+    @DrawableRes inactiveIcon: Int? = null,
+    onPress: () -> Unit,
+    onRelease: () -> Unit,
+) {
+    Image(
+        modifier = Modifier
+            .then(modifier)
+            .pressRelease(onPress, onRelease),
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        painter = painterResource(if (active || inactiveIcon == null) activeIcon else inactiveIcon)
+    )
 }
 
 @Composable
@@ -401,30 +447,6 @@ private fun FunctionButton(
             },
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-@Composable
-private fun RoundIconButton(
-    symbol: String,
-    onPress: () -> Unit,
-    onRelease: () -> Unit,
-    size: Int = 44
-) {
-    Box(
-        modifier = Modifier
-            .size(size.dp)
-            .clip(CircleShape)
-            .background(DHCarInfoTheme.accent.copy(alpha = 0.15f))
-            .pressRelease(onPress, onRelease),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = symbol,
-            color = DHCarInfoTheme.accent,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
         )
     }
 }

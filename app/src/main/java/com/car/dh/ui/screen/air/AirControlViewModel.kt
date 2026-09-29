@@ -26,7 +26,10 @@ class AirControlViewModel : ViewModel() {
             modeBody = controller.getBlowBody(),
             modeFoot = controller.getBlowFoot()
         )
-        viewModelScope.launch { AirControlAppWidget.updateAll() }
+        viewModelScope.launch {
+            AirControlAppWidget.updateAll()
+            AirStateDataChange.notifyDataChanged()
+        }
     }
 
 }

@@ -2,7 +2,7 @@ package com.car.dh.utils
 
 import android.annotation.SuppressLint
 
-object TempUtils {
+object AcAirTempUtils {
 
     @JvmStatic
     @SuppressLint("DefaultLocale")
