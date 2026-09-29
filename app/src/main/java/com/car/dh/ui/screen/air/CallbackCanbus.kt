@@ -1,6 +1,5 @@
 package com.car.dh.ui.screen.air
 
-import com.car.dh.AirControlAppWidget
 import com.car.dh.canbus.CallbackCanbusBase
 import com.car.dh.canbus.DataCanbus
 import com.car.dh.canbus.HandlerCanbus

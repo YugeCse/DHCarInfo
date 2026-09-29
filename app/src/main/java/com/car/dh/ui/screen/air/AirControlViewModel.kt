@@ -2,7 +2,6 @@ package com.car.dh.ui.screen.air
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.car.dh.AirControlAppWidget
 import com.car.dh.data.AirControlStateInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -1,4 +1,4 @@
-package com.car.dh
+package com.car.dh.ui.screen.air
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,9 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -45,31 +43,27 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.car.dh.R
 import com.car.dh.app.DHApplication
-import com.car.dh.ui.screen.air.AirController
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.TempUtils
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Implementation of App Widget functionality.
  */
 class AirControlAppWidget : GlanceAppWidgetReceiver() {
 
+    override val glanceAppWidget: GlanceAppWidget = impl
+
     companion object {
+
+        private val impl by lazy { AirControlAppWidgetImpl() }
 
         /** 更新所有的空调组件 **/
         @JvmStatic
-        suspend fun updateAll() {
-            AirControlAppWidgetImpl()
-                .updateAll(DHApplication.singleton())
-        }
+        suspend fun updateAll() = impl.updateAll(DHApplication.singleton())
 
     }
-
-    override val glanceAppWidget: GlanceAppWidget = AirControlAppWidgetImpl()
 
 }
 
@@ -156,17 +150,14 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
                                     .defaultWeight()
                             ) {
                                 val active = index < localWind
-                                val color by animateColorAsState(
-                                    label = "windBar$index",
-                                    animationSpec = tween(180),
-                                    targetValue = if (active) DHCarInfoTheme.accent else DHCarInfoTheme.subText,
-                                )
+                                val bgColor =
+                                    if (active) DHCarInfoTheme.accent else DHCarInfoTheme.subText
                                 Box(
                                     GlanceModifier
                                         .fillMaxWidth()
                                         .cornerRadius(4.dp)
                                         .height(15.dp)
-                                        .background(color)
+                                        .background(bgColor)
                                 ) {}
                             }
                         }
@@ -231,18 +222,15 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
         defaultWidth: Dp = 60.dp,
         modifier: GlanceModifier = GlanceModifier,
     ) {
-        val bg by animateColorAsState(
-            label = "fnBg",
-            animationSpec = tween(200),
-            targetValue = if (active) DHCarInfoTheme.accent else DHCarInfoTheme.inactive,
-        )
+        val bgColor =
+            if (active) DHCarInfoTheme.accent else DHCarInfoTheme.inactive
         Box(GlanceModifier.then(modifier)) {
             Box(
                 modifier = GlanceModifier
                     .width(defaultWidth)
                     .height(42.dp)
                     .cornerRadius(android.R.dimen.system_app_widget_inner_radius)
-                    .background(bg)
+                    .background(bgColor)
                     .clickable { onClick() },
                 contentAlignment = Alignment.Center
             ) {

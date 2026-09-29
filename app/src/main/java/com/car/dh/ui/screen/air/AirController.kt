@@ -1,6 +1,5 @@
 package com.car.dh.ui.screen.air
 
-import com.car.dh.AirControlAppWidget
 import com.car.dh.canbus.DataCanbus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +63,7 @@ class AirController private constructor(
         // 温度范围
         const val TEMP_MIN = 16.0f
         const val TEMP_MAX = 32.0f
+
         const val TEMP_STEP = 0.5f
 
         // 默认温度（未从 DATA 读到有效值时使用）
@@ -105,7 +105,13 @@ class AirController private constructor(
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.IO
 
-    fun pressKey(bytes: IntArray) = send(*bytes)
+    fun pressKey(bytes: IntArray) {
+        send(*bytes)
+        launch {
+            delay(500.milliseconds)
+            AirStateDataChange.sendDataChangeMessage()
+        }
+    }
 
     fun releaseKey() {
         DataCanbus.PROXY.cmd(
@@ -114,10 +120,6 @@ class AirController private constructor(
             null,
             null
         )
-        launch {
-            delay(500.milliseconds)
-            AirStateDataChange.sendDataChangeMessage()
-        }
     }
 
     // ---------------- 状态读取 ----------------
@@ -156,12 +158,17 @@ class AirController private constructor(
     // ---------------- 控制 ----------------
 
     fun togglePower() = pressKey(intArrayOf(0x80, 0, 0, 0, 0, 0))
+
     fun toggleAc() = pressKey(intArrayOf(0x02, 0, 0, 0, 0, 0))
+
     fun toggleFrontDefrost() = pressKey(intArrayOf(0x10, 0, 0, 0, 0, 0))
+
     fun toggleCycle() = pressKey(intArrayOf(0, 0, 0x01, 0, 0, 0))
+
     fun toggleMode() = pressKey(intArrayOf(0x40, 0, 0, 0, 0, 0))
 
     fun increaseTemp() = pressKey(intArrayOf(0, 0, 0, 0x02, 0x02, 0))
+
     fun decreaseTemp() = pressKey(intArrayOf(0, 0, 0, 0x01, 0x01, 0))
 
     fun setWindLevel(level: Int) {
