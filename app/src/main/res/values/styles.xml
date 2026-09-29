@@ -1,0 +1,14 @@
+<resources>
+
+    <style name="Widget.DHCarInfo.AppWidget.Container" parent="android:Widget">
+        <item name="android:id">@android:id/background</item>
+        <item name="android:background">?android:attr/colorBackground</item>
+        <item name="backgroundRadius">12dp</item>
+    </style>
+
+    <style name="Widget.DHCarInfo.AppWidget.InnerView" parent="android:Widget">
+        <item name="android:background">?android:attr/colorBackground</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="backgroundRadius">12dp</item>
+    </style>
+</resources>

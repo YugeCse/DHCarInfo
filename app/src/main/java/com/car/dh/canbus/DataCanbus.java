@@ -18,7 +18,5 @@ public class DataCanbus {
         }
         DATA[1001] = 1;
         DATA[1002] = 1;
-        // DoorHelper.doorWindowEnable(1);
-        AirHelper.airWindowEnable(1);
     }
 }

@@ -1,8 +1,5 @@
 package com.car.dh.canbus;
 
-import com.car.dh.app.DHApplication;
-import com.car.dh.ui.screen.air.Callback_0000_null;
-import com.car.dh.utils.ActivityLaunch;
 import com.car.dh.ui.screen.air.CallbackCanbus;
 
 /* JADX INFO: loaded from: classes.dex */
@@ -51,15 +48,15 @@ public class HandlerCanbus {
     }
 
     public static void updateCarBt(int value) {
-        if (value == 1) {
-            if (!DHApplication.isBtFront) {
-                ActivityLaunch.startActivity(
-                        "com.syu.canbus",
-                        "com.syu.canbus.CarBtActi");
-            }
-        } else if (value == 0 && DHApplication.isBtFront) {
-            ActivityLaunch.backHomeDesktop();
-        }
+        // if (value == 1) {
+        //     if (!DHApplication.isBtFront) {
+        //         ActivityLaunch.startActivity(
+        //                 "com.syu.canbus",
+        //                 "com.syu.canbus.CarBtActi");
+        //     }
+        // } else if (value == 0 && DHApplication.isBtFront) {
+        //     ActivityLaunch.backHomeDesktop();
+        // }
     }
 
     static {
@@ -68,12 +65,9 @@ public class HandlerCanbus {
 
     public static CallbackCanbusBase getCallbackCanbusById(int id) {
         DataCanbus.sCanbusId = id;
-        int canbusId = id & 65535;
+        // int canbusId = id & 65535;
         int carId = (id >> 16) & 65535;
         DataCanbus.carId = carId;
-        if (canbusId == 438 && carId == 5) {
-            return new CallbackCanbus();
-        }
-        return new Callback_0000_null();
+        return new CallbackCanbus();
     }
 }
