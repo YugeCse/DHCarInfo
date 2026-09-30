@@ -141,7 +141,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier
                             .run {
                                 if (!isLandscape) this
-                                else padding(horizontal = 100.dp)
+                                else padding(horizontal = 50.dp)
                             }
                             .fillMaxWidth()
                             .weight(1f),
@@ -234,7 +234,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
-                .size(56.dp),
+                .size(46.dp),
             active = uiState.ac == 1,
             activeIcon = R.drawable.ic_ac_status_on,
             inactiveIcon = R.drawable.ic_ac_status_off,
@@ -245,7 +245,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
-                .size(56.dp),
+                .size(46.dp),
             active = uiState.power == 1,
             activeIcon = R.drawable.ic_air_status_on,
             inactiveIcon = R.drawable.ic_air_status_off,

@@ -1,4 +1,4 @@
-package com.car.dh.utils
+package com.car.dh.ui.screen.air
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -66,7 +66,7 @@ object AcArcDrawer {
             textSize = tempTextSize
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
-            color = Color.BLACK
+            color = DHCarInfoTheme.accent.toArgb()
         }
 
         // 2. 计算圆弧边界 (留出 padding 和文字空间)
