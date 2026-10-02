@@ -308,7 +308,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                             )
                             .size(50.dp)
                             .padding(5.dp),
-                        onClick = airController::toggleMode,
+                        onClick = airController::toggleCycle,
                         active = cycleMode == 1,
                         inactiveIcon = when (cycleMode) {
                             0 -> R.drawable.ic_air_mode_out_cycle
