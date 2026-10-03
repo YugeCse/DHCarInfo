@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -19,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,13 +69,20 @@ private fun AirSettingsDialogView(
         Modifier
             .clip(RoundedCornerShape(12.dp))
             .sizeIn(maxWidth = 460.dp)
-            .fillMaxWidth(0.8f),
+            .run {
+                if (!LocalInspectionMode.current)
+                    fillMaxWidth(0.8f)
+                else defaultMinSize(minWidth = 460.dp)
+            },
         Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(DHCarInfoTheme.bg, RoundedCornerShape(12.dp)),
+                .background(
+                    DHCarInfoTheme.bg,
+                    RoundedCornerShape(12.dp)
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -107,5 +116,5 @@ private fun AirSettingsDialogView(
 
 
 @Composable
-@Preview(device = "spec:parent=pixel_5,orientation=landscape")
+@Preview(device = "id:pixel_9a")
 private fun AirSettingsDialogViewPreview() = DHCarInfoTheme { AirSettingsDialogView() }

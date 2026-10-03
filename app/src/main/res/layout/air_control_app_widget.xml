@@ -4,6 +4,12 @@
     android:layout_height="match_parent"
     android:theme="@style/Theme.DHCarInfo.AppWidgetContainer">
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:src="@drawable/img_air_app_widget" />
+
     <TextView
         android:id="@+id/appwidget_text"
         style="@style/Widget.DHCarInfo.AppWidget.InnerView"
@@ -15,5 +21,6 @@
         android:contentDescription="@string/appwidget_text"
         android:text="@string/appwidget_text"
         android:textSize="24sp"
-        android:textStyle="bold|italic" />
+        android:textStyle="bold|italic"
+        android:visibility="gone" />
 </RelativeLayout>

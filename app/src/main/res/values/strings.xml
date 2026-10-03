@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">车辆控制</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">This is an app widget description</string>
+    <string name="appwidget_text">空调控制小组件</string>
+    <string name="add_widget">添加小组件</string>
+    <string name="app_widget_description">这是一个控制车辆空调的小组件</string>
 </resources>
