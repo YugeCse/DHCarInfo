@@ -32,7 +32,15 @@ public class ActivityLaunch {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        DHApplication.singleton(). startActivity(intent);
+        DHApplication.singleton().startActivity(intent);
+    }
+
+    public static void openSelfApp(){
+        String pkg = DHApplication.singleton().getPackageName();
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName(pkg, pkg + ".MainActivityDefault2"));
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        DHApplication.singleton().startActivity(intent);
     }
 
 }

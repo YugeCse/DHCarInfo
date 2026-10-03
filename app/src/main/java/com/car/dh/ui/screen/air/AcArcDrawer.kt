@@ -9,6 +9,7 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
+import com.car.dh.app.GlobalConfig
 import com.car.dh.ui.theme.DHCarInfoTheme
 import kotlin.math.cos
 import kotlin.math.min
@@ -25,6 +26,7 @@ object AcArcDrawer {
      * @param activeGear 当前激活的档位 (从 1 开始)
      */
     fun drawAcArc(
+        globalConfig: GlobalConfig,
         currentTemp: Float,
         totalGears: Int,
         activeGear: Int,
@@ -45,28 +47,28 @@ object AcArcDrawer {
             style = Paint.Style.STROKE
             strokeWidth = arcStrokeWidth
             strokeCap = Paint.Cap.ROUND
-            color = DHCarInfoTheme.inactive.toArgb()
+            color = globalConfig.airAppWidgetMarkOvalColor.toArgb()
         }
 
         val activeArcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = arcStrokeWidth * 1.1f
             strokeCap = Paint.Cap.ROUND
-            color = DHCarInfoTheme.accent.toArgb()
+            color = globalConfig.airAppWidgetMarkOvalSelectColor.toArgb()
         }
 
         val gearPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = gearTextSize
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
-            color = DHCarInfoTheme.subText.toArgb()
+            color = globalConfig.airAppWidgetMarkOvalColor.toArgb()
         }
 
         val tempPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = tempTextSize
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
-            color = DHCarInfoTheme.accent.toArgb()
+            color = globalConfig.airAppWidgetTempTextColor.toArgb()
         }
 
         // 2. 计算圆弧边界 (留出 padding 和文字空间)
@@ -110,8 +112,12 @@ object AcArcDrawer {
             // 绘制刻度线
             val currentGearPaint = Paint(arcPaint).apply {
                 strokeWidth = arcStrokeWidth * 0.5f
-                color =
-                    (if (i <= activeGear) DHCarInfoTheme.accent else DHCarInfoTheme.inactive).toArgb()
+                color = (when {
+                    i <= activeGear ->
+                        globalConfig.airAppWidgetMarkOvalSelectColor
+
+                    else -> globalConfig.airAppWidgetMarkOvalColor
+                }).toArgb()
             }
             canvas.drawLine(x1, y1, x2, y2, currentGearPaint)
 
@@ -122,9 +128,9 @@ object AcArcDrawer {
             val newTextPaint = gearPaint.apply {
                 color = when {
                     i > activeGear - 1 ->
-                        DHCarInfoTheme.subText.toArgb()
+                        globalConfig.airAppWidgetMarkNumberColor.toArgb()
 
-                    else -> DHCarInfoTheme.accent.toArgb()
+                    else -> globalConfig.airAppWidgetMarkNumberSelectColor.toArgb()
                 }
             }
             canvas.drawText("${i + 1}", textX, textY, newTextPaint)

@@ -56,10 +56,10 @@ import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.milliseconds
 
 
-// ============================================================
-// 主界面
-// ============================================================
-
+/**
+ * 空调屏幕显示
+ * @param modifier 修饰器
+ */
 @Composable
 fun AirControlScreen(modifier: Modifier = Modifier) {
     Box(
@@ -70,9 +70,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
         val viewModel = viewModel<AirControlViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val airStateInfo = uiState.airStateInfo
-        // ---------- 温度：完全本地维护 ----------
-        // 只在首次组合时读一次 DATA，之后用户点 +/- 只改本地值。
-        // 如果首次读到无效值（-1/-2/-3 或 0），使用默认温度。
         val localTemp by remember {
             derivedStateOf {
                 val raw = viewModel.controller.getTempLeft()
@@ -81,8 +78,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 ) raw else AirController.TEMP_DEFAULT
             }
         }
-
-        // ---------- 风量：完全本地维护 ----------
         val localWind by remember {
             val raw = viewModel.controller.getWindLevel()
             derivedStateOf {
@@ -92,26 +87,19 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
-        // ---------- A/C：本地预测 ----------
         var localAc by remember { mutableStateOf<Int?>(null) }
         val displayAc = localAc ?: airStateInfo.ac
         LaunchedEffect(airStateInfo.ac) {
             if (localAc != null && localAc == airStateInfo.ac) localAc = null
         }
-
-        // ---------- 循环：本地预测 ----------
         var localCycle by remember { mutableStateOf<Int?>(null) }
         val displayCycle = localCycle ?: airStateInfo.cycle
         LaunchedEffect(airStateInfo.cycle) {
             if (localCycle != null && localCycle == airStateInfo.cycle) localCycle = null
         }
-
-        // ---------- 模式：完全本地维护 ----------
-        // 只有"模式切换"命令，没有独立吹风位命令，本地循环显示 5 种状态。
-        val modeLabels = listOf("吹面", "吹面+吹脚", "吹脚", "吹脚+除霜", "除霜")
+        val modeLabels = listOf("吹面", "吹体", "吹脚", "吹脚+除霜", "吹面+吹脚")
         var modeIndex by remember { mutableIntStateOf(0) }
         val modeLabel = modeLabels[modeIndex]
-        // 兜底轮询：只用来同步开关类状态，不涉及温度/风量
         LaunchedEffect(viewModel) {
             while (isActive) {
                 viewModel.syncAirStateData()
@@ -155,7 +143,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             onRelease = viewModel.controller::releaseKey,
                         )
                         HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
-                        // ---------- 风量 ----------
                         Row(
                             modifier = Modifier
                                 .padding(top = 20.dp)
@@ -181,9 +168,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 onRelease = viewModel.controller::releaseKey
                             )
                         }
-
-
-                        // ---------- 功能按钮：A/C、循环、前除霜、模式 ----------
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)

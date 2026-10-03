@@ -30,7 +30,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DHCarInfo">
         <activity
@@ -47,7 +47,7 @@
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:label="车辆控制服务"
-            android:roundIcon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -61,7 +61,7 @@
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

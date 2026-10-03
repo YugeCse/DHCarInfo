@@ -1,23 +1,30 @@
 [versions]
 agp = "9.4.1"
-coreKtx = "1.10.1"
+androidxLifecycleViewmodelComposeVersion = "2.11.0"
+androidxLifecycleViewmodelVersion = "2.11.0"
+colorpickerCompose = "1.3.0"
+coreKtx = "1.16.0"
 glanceAppwidgetPreview = "1.2.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
-lifecycleRuntimeKtx = "2.6.1"
-activityCompose = "1.8.0"
-kotlin = "2.2.10"
-composeBom = "2026.02.01"
+lifecycleRuntimeKtx = "2.11.0"
+activityCompose = "1.8.2"
+kotlin = "2.4.20"
+composeBom = "2026.09.00"
 glanceAppwidget = "1.2.0"
 appcompat = "1.6.1"
 material = "1.10.0"
-activityKtx = "1.8.0"
+activityKtx = "1.8.2"
 constraintlayout = "2.1.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-glance-appwidget-preview = { module = "androidx.glance:glance-appwidget-preview", version.ref = "glanceAppwidgetPreview" }
+androidx-glance-glance-preview = { module = "androidx.glance:glance-preview", version.ref = "glanceAppwidgetPreview" }
+androidx-lifecycle-lifecycle-viewmodel2 = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidxLifecycleViewmodelVersion" }
+androidx-lifecycle-lifecycle-viewmodel-compose2 = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidxLifecycleViewmodelComposeVersion" }
+colorpicker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpickerCompose" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

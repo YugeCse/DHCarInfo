@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -60,7 +61,9 @@ import androidx.glance.unit.FixedColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
 import com.car.dh.app.GlobalConfig
+import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.theme.DHCarInfoTheme
+import com.car.dh.utils.ActivityLaunch
 
 /** 空调控制微件BroadcastReceiver **/
 class AirControlAppWidget : GlanceAppWidgetReceiver() {
@@ -99,14 +102,17 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
 
 }
 
-@SuppressLint("RestrictedApi", "ResourceType")
 @Composable
-private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.dp)) {
+@SuppressLint("RestrictedApi", "ResourceType")
+private fun AirControlAppWidgetContent(
+    widgetSize: DpSize = DpSize(400.dp, 300.dp)
+) {
     val dataVersion by AirStateDataChange
         .dataChangeFlow
         .collectAsState(0L)
     val globalConfig = remember { GlobalConfig.singleton() }
     key(dataVersion) {
+        val globalConfig = LocalGlobalConfig.current
         val airController = AirController.singleton()
         val isPowerOn = airController.getPower() == 1
         val isAcOn = airController.getAc() == 1
@@ -136,6 +142,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
             tempTextSize
         ) {
             AcArcDrawer.drawAcArc(
+                globalConfig = globalConfig,
                 currentTemp = temp,
                 totalGears = 8,
                 activeGear = activeGear,
@@ -218,28 +225,24 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                             Alignment.CenterHorizontally
                         ) {
                             ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
+                                modifier = GlanceModifier.size(48.dp),
                                 active = false,
                                 activeIcon = R.drawable.ic_data_decrement,
                                 onClick = {
                                     val next = (activeGear - 1)
                                         .coerceAtLeast(AirController.WIND_MIN)
-                                    if (next != activeGear) {
-                                        airController.setWindLevel(next)
-                                    }
+                                    if (next != activeGear) airController.setWindLevel(next)
                                 }
                             )
                             ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
-                                margin = PaddingValues(start = 12.dp),
+                                modifier = GlanceModifier.size(48.dp),
+                                margin = PaddingValues(start = 20.dp),
                                 active = false,
                                 activeIcon = R.drawable.ic_data_increment,
                                 onClick = {
                                     val next = (activeGear + 1)
                                         .coerceAtMost(AirController.WIND_MAX)
-                                    if (next != activeGear) {
-                                        airController.setWindLevel(next)
-                                    }
+                                    if (next != activeGear) airController.setWindLevel(next)
                                 }
                             )
                         }
@@ -263,14 +266,14 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                             Alignment.CenterHorizontally
                         ) {
                             ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
+                                modifier = GlanceModifier.size(48.dp),
                                 active = false,
                                 activeIcon = R.drawable.ic_data_decrement,
                                 onClick = airController::decreaseTemp
                             )
                             ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
-                                margin = PaddingValues(start = 12.dp),
+                                modifier = GlanceModifier.size(48.dp),
+                                margin = PaddingValues(start = 20.dp),
                                 active = false,
                                 activeIcon = R.drawable.ic_data_increment,
                                 onClick = airController::increaseTemp
@@ -286,6 +289,17 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                 ) {
                     ImageButton(
                         modifier = GlanceModifier
+                            .background(ImageProvider(R.drawable.bg_btn_inactive))
+                            .size(50.dp)
+                            .padding(5.dp),
+                        title = "APP",
+                        active = true,
+                        activeIcon = R.drawable.ic_relation_air_app,
+                        onClick = { ActivityLaunch.openSelfApp() },
+                    )
+                    Spacer(GlanceModifier.defaultWeight())
+                    ImageButton(
+                        modifier = GlanceModifier
                             .background(
                                 ImageProvider(
                                     if (!isFrontDefrost)
@@ -295,6 +309,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                             )
                             .size(50.dp)
                             .padding(5.dp),
+                        title = "A/C",
                         onClick = airController::toggleFrontDefrost,
                         active = isFrontDefrost,
                         activeIcon = R.drawable.ic_air_front_defrost,
@@ -311,6 +326,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                             )
                             .size(50.dp)
                             .padding(5.dp),
+                        title = "模式",
                         onClick = airController::toggleCycle,
                         active = cycleMode == 1,
                         inactiveIcon = when (cycleMode) {
@@ -336,6 +352,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                             .size(50.dp)
                             .padding(5.dp),
                         onClick = airController::toggleMode,
+                        title = "风向",
                         active = isDirAvailable,
                         inactiveIcon = R.drawable.ic_air_dir_frost,
                         activeIcon = when {
@@ -359,9 +376,11 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
 
 
 @Composable
+@SuppressLint("RestrictedApi")
 private fun ImageButton(
     modifier: GlanceModifier = GlanceModifier,
     margin: PaddingValues? = null,
+    title: String? = null,
     active: Boolean,
     @DrawableRes activeIcon: Int,
     @DrawableRes inactiveIcon: Int? = null,
@@ -374,13 +393,15 @@ private fun ImageButton(
         margin?.calculateEndPadding(layoutDirection) ?: 0.dp
     val paddingTop = margin?.calculateTopPadding() ?: 0.dp
     val paddingBottom = margin?.calculateBottomPadding() ?: 0.dp
-    Box(
-        GlanceModifier.padding(
+    Column(
+        modifier = GlanceModifier.padding(
             start = paddingStart,
             end = paddingEnd,
             top = paddingTop,
             bottom = paddingBottom,
-        )
+        ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             modifier = GlanceModifier
@@ -391,59 +412,26 @@ private fun ImageButton(
                     activeIcon
                 else inactiveIcon
             ),
+            colorFilter = when {
+                inactiveIcon != null && active ->
+                    ColorFilter.tint(
+                        ColorProvider(Color.White)
+                    )
+                else -> null
+            },
             contentDescription = null,
             contentScale = ContentScale.Fit,
         )
-    }
-}
-
-
-@Composable
-@SuppressLint("RestrictedApi")
-private fun FunctionButton(
-    label: String,
-    active: Boolean,
-    onClick: () -> Unit,
-    defaultWidth: Dp = 60.dp,
-    modifier: GlanceModifier = GlanceModifier,
-) {
-    val bgColor =
-        if (active) DHCarInfoTheme.accent else DHCarInfoTheme.inactive
-    Box(GlanceModifier.then(modifier)) {
-        Box(
-            modifier = GlanceModifier
-                .width(defaultWidth)
-                .height(42.dp)
-                .cornerRadius(android.R.dimen.system_app_widget_inner_radius)
-                .background(bgColor)
-                .clickable { onClick() },
-            contentAlignment = Alignment.Center
-        ) {
+        if (!title.isNullOrEmpty()) {
+            Spacer(GlanceModifier.height(3.dp))
             Text(
-                text = label,
+                text = title,
                 style = TextStyle(
-                    color = ColorProvider(
-                        when {
-                            active -> Color.Black
-                            else -> DHCarInfoTheme.text
-                        }
-                    ),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 11.sp,
+                    color = ColorProvider(DHCarInfoTheme.subText)
                 )
             )
         }
-    }
-}
-
-@Composable
-private fun Dp.toSp(): TextUnit {
-    val resources = LocalContext.current.resources
-    val density = resources.displayMetrics.density
-    val fontScale = resources.configuration.fontScale
-    return with(Density(density, fontScale)) {
-        // 这里使用 Compose 的 Dp.toSp() 扩展函数
-        this@toSp.toSp()
     }
 }
 
