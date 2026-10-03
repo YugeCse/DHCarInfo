@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.HorizontalDivider
@@ -56,10 +57,10 @@ import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.milliseconds
 
 
-// ============================================================
-// 主界面
-// ============================================================
-
+/**
+ * 空调屏幕显示
+ * @param modifier 修饰器
+ */
 @Composable
 fun AirControlScreen(modifier: Modifier = Modifier) {
     Box(
@@ -70,9 +71,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
         val viewModel = viewModel<AirControlViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val airStateInfo = uiState.airStateInfo
-        // ---------- 温度：完全本地维护 ----------
-        // 只在首次组合时读一次 DATA，之后用户点 +/- 只改本地值。
-        // 如果首次读到无效值（-1/-2/-3 或 0），使用默认温度。
+        val isPowerOn = airStateInfo.power == 1
         val localTemp by remember {
             derivedStateOf {
                 val raw = viewModel.controller.getTempLeft()
@@ -81,8 +80,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 ) raw else AirController.TEMP_DEFAULT
             }
         }
-
-        // ---------- 风量：完全本地维护 ----------
         val localWind by remember {
             val raw = viewModel.controller.getWindLevel()
             derivedStateOf {
@@ -92,26 +89,19 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
-        // ---------- A/C：本地预测 ----------
         var localAc by remember { mutableStateOf<Int?>(null) }
         val displayAc = localAc ?: airStateInfo.ac
         LaunchedEffect(airStateInfo.ac) {
             if (localAc != null && localAc == airStateInfo.ac) localAc = null
         }
-
-        // ---------- 循环：本地预测 ----------
         var localCycle by remember { mutableStateOf<Int?>(null) }
         val displayCycle = localCycle ?: airStateInfo.cycle
         LaunchedEffect(airStateInfo.cycle) {
             if (localCycle != null && localCycle == airStateInfo.cycle) localCycle = null
         }
-
-        // ---------- 模式：完全本地维护 ----------
-        // 只有"模式切换"命令，没有独立吹风位命令，本地循环显示 5 种状态。
-        val modeLabels = listOf("吹面", "吹面+吹脚", "吹脚", "吹脚+除霜", "除霜")
+        val modeLabels = listOf("吹面", "吹体", "吹脚", "吹脚+除霜", "吹面+吹脚")
         var modeIndex by remember { mutableIntStateOf(0) }
         val modeLabel = modeLabels[modeIndex]
-        // 兜底轮询：只用来同步开关类状态，不涉及温度/风量
         LaunchedEffect(viewModel) {
             while (isActive) {
                 viewModel.syncAirStateData()
@@ -149,41 +139,38 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 }
                                 .fillMaxWidth()
                                 .weight(1f),
+                            active = airStateInfo.power == 1,
                             temp = localTemp,
                             onTempUp = { viewModel.controller.increaseTemp() },
                             onTempDown = { viewModel.controller.decreaseTemp() },
                             onRelease = viewModel.controller::releaseKey,
                         )
                         HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
-                        // ---------- 风量 ----------
-                        Row(
+                        WindPanel(
                             modifier = Modifier
-                                .padding(top = 20.dp)
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            WindPanel(
-                                level = localWind,
-                                onUpPress = {
-                                    val next = (localWind + 1)
-                                        .coerceAtMost(AirController.WIND_MAX)
-                                    if (next != localWind) {
-                                        viewModel.controller.setWindLevel(next)
-                                    }
-                                },
-                                onDownPress = {
-                                    val next = (localWind - 1)
-                                        .coerceAtLeast(AirController.WIND_MIN)
-                                    if (next != localWind) {
-                                        viewModel.controller.setWindLevel(next)
-                                    }
-                                },
-                                onRelease = viewModel.controller::releaseKey
-                            )
-                        }
-
-
-                        // ---------- 功能按钮：A/C、循环、前除霜、模式 ----------
+                                .padding(top = 20.dp),
+                            active = isPowerOn,
+                            level = localWind,
+                            onChangeWindLevel = { level ->
+                                viewModel.controller
+                                    .setWindLevel(level)
+                            },
+                            onUpPress = {
+                                val next = (localWind + 1)
+                                    .coerceAtMost(AirController.WIND_MAX)
+                                if (next != localWind) {
+                                    viewModel.controller.setWindLevel(next)
+                                }
+                            },
+                            onDownPress = {
+                                val next = (localWind - 1)
+                                    .coerceAtLeast(AirController.WIND_MIN)
+                                if (next != localWind) {
+                                    viewModel.controller.setWindLevel(next)
+                                }
+                            },
+                            onRelease = viewModel.controller::releaseKey
+                        )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -194,7 +181,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                     1 -> "内循环"
                                     else -> "自动"
                                 },
-                                active = displayAc == 1,
+                                active = isPowerOn && displayAc == 1,
                                 onPress = viewModel.controller::toggleCycle,
                                 onRelease = viewModel.controller::releaseKey,
                                 modifier = Modifier.weight(1f)
@@ -202,16 +189,18 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             FunctionButton(
                                 modifier = Modifier.weight(1f),
                                 label = "前除霜",
-                                active = airStateInfo.frontDefrost == 1,
+                                active = isPowerOn &&
+                                        airStateInfo.frontDefrost == 1,
                                 onPress = viewModel.controller::toggleFrontDefrost,
                                 onRelease = viewModel.controller::releaseKey,
                             )
                             FunctionButton(
                                 modifier = Modifier.weight(1f),
                                 label = modeLabel,
-                                active = airStateInfo.modeBody == 1 ||
-                                        airStateInfo.modeUp == 1 ||
-                                        airStateInfo.modeFoot == 1,
+                                active = isPowerOn &&
+                                        (airStateInfo.modeBody == 1 ||
+                                                airStateInfo.modeUp == 1 ||
+                                                airStateInfo.modeFoot == 1),
                                 onPress = {
                                     modeIndex = (modeIndex + 1) % modeLabels.size
                                     viewModel.controller.toggleMode()
@@ -222,11 +211,9 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(DHCarInfoTheme.inactive)
-                                    .padding(8.dp)
-                                    .size(42.dp)
-                                    .clickable(onClick = {
-                                        viewModel.isAirSettingDialogVisible = true
-                                    }),
+                                    .size(56.dp)
+                                    .clickable { viewModel.isAirSettingDialogVisible = true }
+                                    .padding(12.dp),
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
                                 painter = painterResource(R.drawable.ic_air_settings)
@@ -235,9 +222,9 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(DHCarInfoTheme.inactive)
-                                    .padding(8.dp)
-                                    .size(42.dp)
-                                    .clickable(onClick = { ActivityLaunch.backHomeDesktop() }),
+                                    .size(56.dp)
+                                    .clickable{ ActivityLaunch.backHomeDesktop() }
+                                    .padding(12.dp),
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
                                 painter = painterResource(R.drawable.ic_back_home)
@@ -250,8 +237,17 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(16.dp)
-                    .size(46.dp),
-                active = airStateInfo.ac == 1,
+                    .clip(CircleShape)
+                    .background(
+                        if (isPowerOn &&
+                            airStateInfo.ac == 1
+                        )
+                            DHCarInfoTheme.accent
+                        else DHCarInfoTheme.inactive
+                    )
+                    .size(46.dp)
+                    .padding(8.dp),
+                active = isPowerOn && airStateInfo.ac == 1,
                 activeIcon = R.drawable.ic_air_ac_status_on,
                 inactiveIcon = R.drawable.ic_air_ac_status_off,
                 onPress = viewModel.controller::toggleAc,
@@ -261,8 +257,15 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(16.dp)
-                    .size(46.dp),
-                active = airStateInfo.power == 1,
+                    .clip(CircleShape)
+                    .background(
+                        if (isPowerOn)
+                            DHCarInfoTheme.accent
+                        else DHCarInfoTheme.inactive
+                    )
+                    .size(46.dp)
+                    .padding(8.dp),
+                active = isPowerOn,
                 activeIcon = R.drawable.ic_air_power_status_on,
                 inactiveIcon = R.drawable.ic_air_power_status_off,
                 onPress = viewModel.controller::togglePower,
@@ -278,6 +281,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun TemperaturePanel(
     temp: Float,
+    active: Boolean,
     onTempUp: () -> Unit,
     onTempDown: () -> Unit,
     onRelease: () -> Unit,
@@ -303,15 +307,17 @@ private fun TemperaturePanel(
                     modifier = Modifier.size(42.dp),
                     onPress = onTempDown,
                     onRelease = onRelease,
-                    active = true,
+                    active = active,
                     activeIcon = R.drawable.ic_data_decrement,
+                    inactiveIcon = R.drawable.ic_data_decrement_inactive
                 )
                 ImageButton(
                     modifier = Modifier.size(42.dp),
                     onPress = onTempUp,
                     onRelease = onRelease,
-                    active = true,
+                    active = active,
                     activeIcon = R.drawable.ic_data_increment,
+                    inactiveIcon = R.drawable.ic_data_increment_inactive
                 )
             }
             Row(
@@ -329,7 +335,7 @@ private fun TemperaturePanel(
                 Text(
                     text = "℃",
                     fontSize = 15.sp,
-                    color = DHCarInfoTheme.accent
+                    color = DHCarInfoTheme.subText
                 )
             }
             Column(
@@ -340,15 +346,17 @@ private fun TemperaturePanel(
                     modifier = Modifier.size(42.dp),
                     onPress = onTempDown,
                     onRelease = onRelease,
-                    active = true,
+                    active = active,
                     activeIcon = R.drawable.ic_data_decrement,
+                    inactiveIcon = R.drawable.ic_data_decrement_inactive
                 )
                 ImageButton(
                     modifier = Modifier.size(42.dp),
                     onPress = onTempUp,
                     onRelease = onRelease,
-                    active = true,
+                    active = active,
                     activeIcon = R.drawable.ic_data_increment,
+                    inactiveIcon = R.drawable.ic_data_increment_inactive,
                 )
             }
         }
@@ -357,13 +365,17 @@ private fun TemperaturePanel(
 
 @Composable
 private fun WindPanel(
+    modifier: Modifier = Modifier,
     level: Int,
-    onUpPress: () -> Unit,
-    onDownPress: () -> Unit,
-    onRelease: () -> Unit
+    active: Boolean,
+    onUpPress: () -> Unit = {},
+    onDownPress: () -> Unit = {},
+    onRelease: () -> Unit = {},
+    onChangeWindLevel: (Int) -> Unit = {}
 ) {
     Row(
         modifier = Modifier
+            .then(modifier)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(DHCarInfoTheme.panel)
@@ -385,15 +397,15 @@ private fun WindPanel(
                     label = "windBar$index"
                 )
                 Box(
-                    modifier = Modifier
+                    Modifier
                         .weight(1f)
                         .height(16.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(color)
+                        .clickable { onChangeWindLevel(index + 1) }
                 )
             }
         }
-
         Text(
             text = level.toString(),
             color = DHCarInfoTheme.text,
@@ -406,15 +418,17 @@ private fun WindPanel(
             modifier = Modifier.size(42.dp),
             onPress = onDownPress,
             onRelease = onRelease,
-            active = true,
+            active = active,
             activeIcon = R.drawable.ic_data_decrement,
+            inactiveIcon = R.drawable.ic_data_decrement_inactive,
         )
         ImageButton(
             modifier = Modifier.size(42.dp),
             onPress = onUpPress,
             onRelease = onRelease,
-            active = true,
+            active = active,
             activeIcon = R.drawable.ic_data_increment,
+            inactiveIcon = R.drawable.ic_data_increment_inactive,
         )
     }
 }

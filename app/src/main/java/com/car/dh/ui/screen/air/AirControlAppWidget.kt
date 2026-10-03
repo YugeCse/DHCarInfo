@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -60,7 +61,9 @@ import androidx.glance.unit.FixedColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
 import com.car.dh.app.GlobalConfig
+import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.theme.DHCarInfoTheme
+import com.car.dh.utils.ActivityLaunch
 
 /** 空调控制微件BroadcastReceiver **/
 class AirControlAppWidget : GlanceAppWidgetReceiver() {
@@ -99,14 +102,17 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
 
 }
 
-@SuppressLint("RestrictedApi", "ResourceType")
 @Composable
-private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.dp)) {
+@SuppressLint("RestrictedApi", "ResourceType")
+private fun AirControlAppWidgetContent(
+    widgetSize: DpSize = DpSize(400.dp, 300.dp)
+) {
     val dataVersion by AirStateDataChange
         .dataChangeFlow
         .collectAsState(0L)
     val globalConfig = remember { GlobalConfig.singleton() }
     key(dataVersion) {
+        val globalConfig = LocalGlobalConfig.current
         val airController = AirController.singleton()
         val isPowerOn = airController.getPower() == 1
         val isAcOn = airController.getAc() == 1
@@ -136,6 +142,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
             tempTextSize
         ) {
             AcArcDrawer.drawAcArc(
+                globalConfig = globalConfig,
                 currentTemp = temp,
                 totalGears = 8,
                 activeGear = activeGear,
@@ -159,7 +166,16 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
             contentAlignment = Alignment.TopEnd
         ) {
             ImageButton(
-                modifier = GlanceModifier.size(40.dp),
+                modifier = GlanceModifier
+                    .background(
+                        ImageProvider(
+                            if (!isPowerOn)
+                                R.drawable.bg_circle_btn_inactive
+                            else R.drawable.bg_circle_btn_active
+                        )
+                    )
+                    .size(50.dp)
+                    .padding(10.dp),
                 active = isPowerOn,
                 onClick = airController::togglePower,
                 activeIcon = R.drawable.ic_air_power_status_on,
@@ -167,7 +183,16 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
             )
             Box(GlanceModifier.fillMaxWidth()) {
                 ImageButton(
-                    modifier = GlanceModifier.size(36.dp),
+                    modifier = GlanceModifier
+                        .background(
+                            ImageProvider(
+                                if (!isAcOn)
+                                    R.drawable.bg_circle_btn_inactive
+                                else R.drawable.bg_circle_btn_active
+                            )
+                        )
+                        .size(50.dp)
+                        .padding(10.dp),
                     active = isAcOn,
                     onClick = airController::toggleAc,
                     activeIcon = R.drawable.ic_air_ac_status_on,
@@ -200,83 +225,29 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
+                    ControlAdjustView(
                         modifier = GlanceModifier.defaultWeight(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "风量",
-                            style = TextStyle(
-                                fontSize = 13.sp,
-                                color = FixedColorProvider(DHCarInfoTheme.subText)
-                            )
-                        )
-                        Row(
-                            GlanceModifier
-                                .padding(top = 16.dp)
-                                .fillMaxWidth(),
-                            Alignment.CenterHorizontally
-                        ) {
-                            ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
-                                active = false,
-                                activeIcon = R.drawable.ic_data_decrement,
-                                onClick = {
-                                    val next = (activeGear - 1)
-                                        .coerceAtLeast(AirController.WIND_MIN)
-                                    if (next != activeGear) {
-                                        airController.setWindLevel(next)
-                                    }
-                                }
-                            )
-                            ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
-                                margin = PaddingValues(start = 12.dp),
-                                active = false,
-                                activeIcon = R.drawable.ic_data_increment,
-                                onClick = {
-                                    val next = (activeGear + 1)
-                                        .coerceAtMost(AirController.WIND_MAX)
-                                    if (next != activeGear) {
-                                        airController.setWindLevel(next)
-                                    }
-                                }
-                            )
+                        title = "风量",
+                        active = isPowerOn,
+                        onDecrementClick = {
+                            val next = (activeGear - 1)
+                                .coerceAtLeast(AirController.WIND_MIN)
+                            if (next != activeGear) airController.setWindLevel(next)
+                        },
+                        onIncrementClick = {
+                            val next = (activeGear + 1)
+                                .coerceAtMost(AirController.WIND_MAX)
+                            if (next != activeGear) airController.setWindLevel(next)
                         }
-                    }
+                    )
                     Spacer(GlanceModifier.width(30.dp))
-                    Column(
+                    ControlAdjustView(
                         modifier = GlanceModifier.defaultWeight(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "温度",
-                            style = TextStyle(
-                                fontSize = 13.sp,
-                                color = FixedColorProvider(DHCarInfoTheme.subText)
-                            )
-                        )
-                        Row(
-                            GlanceModifier
-                                .padding(top = 16.dp)
-                                .fillMaxWidth(),
-                            Alignment.CenterHorizontally
-                        ) {
-                            ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
-                                active = false,
-                                activeIcon = R.drawable.ic_data_decrement,
-                                onClick = airController::decreaseTemp
-                            )
-                            ImageButton(
-                                modifier = GlanceModifier.size(42.dp),
-                                margin = PaddingValues(start = 12.dp),
-                                active = false,
-                                activeIcon = R.drawable.ic_data_increment,
-                                onClick = airController::increaseTemp
-                            )
-                        }
-                    }
+                        title = "温度",
+                        active = isPowerOn,
+                        onDecrementClick = airController::decreaseTemp,
+                        onIncrementClick = airController::increaseTemp
+                    )
                 }
                 Row(
                     modifier = GlanceModifier
@@ -284,6 +255,17 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    ImageButton(
+                        modifier = GlanceModifier
+                            .background(ImageProvider(R.drawable.bg_btn_inactive))
+                            .size(50.dp)
+                            .padding(8.dp),
+                        title = "APP",
+                        active = true,
+                        activeIcon = R.drawable.ic_relation_air_app,
+                        onClick = { ActivityLaunch.openSelfApp() },
+                    )
+                    Spacer(GlanceModifier.defaultWeight())
                     ImageButton(
                         modifier = GlanceModifier
                             .background(
@@ -294,7 +276,8 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                                 )
                             )
                             .size(50.dp)
-                            .padding(5.dp),
+                            .padding(8.dp),
+                        title = "A/C",
                         onClick = airController::toggleFrontDefrost,
                         active = isFrontDefrost,
                         activeIcon = R.drawable.ic_air_front_defrost,
@@ -310,9 +293,10 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                                 )
                             )
                             .size(50.dp)
-                            .padding(5.dp),
+                            .padding(8.dp),
+                        title = "模式",
                         onClick = airController::toggleCycle,
-                        active = cycleMode == 1,
+                        active = cycleMode in arrayOf(0, 1),
                         inactiveIcon = when (cycleMode) {
                             0 -> R.drawable.ic_air_mode_out_cycle
                             else -> R.drawable.ic_air_mode_auto_cycle
@@ -334,8 +318,9 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                                 )
                             )
                             .size(50.dp)
-                            .padding(5.dp),
+                            .padding(8.dp),
                         onClick = airController::toggleMode,
+                        title = "风向",
                         active = isDirAvailable,
                         inactiveIcon = R.drawable.ic_air_dir_frost,
                         activeIcon = when {
@@ -357,12 +342,62 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
     }
 }
 
+/** 控制调整视图 **/
+@Composable
+@SuppressLint("RestrictedApi")
+private fun ControlAdjustView(
+    modifier: GlanceModifier = GlanceModifier,
+    title: String,
+    active: Boolean = false,
+    onDecrementClick: () -> Unit = {},
+    onIncrementClick: () -> Unit = {}
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            style = TextStyle(
+                fontSize = 13.sp,
+                color = FixedColorProvider(DHCarInfoTheme.subText)
+            )
+        )
+        Row(
+            GlanceModifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            Alignment.CenterHorizontally
+        ) {
+            ImageButton(
+                onClick = onDecrementClick,
+                modifier = GlanceModifier.size(48.dp),
+                active = active,
+                useColorTint = false,
+                activeIcon = R.drawable.ic_data_decrement,
+                inactiveIcon = R.drawable.ic_data_decrement_inactive,
+            )
+            ImageButton(
+                onClick = onIncrementClick,
+                modifier = GlanceModifier.size(48.dp),
+                margin = PaddingValues(start = 20.dp),
+                active = active,
+                useColorTint = false,
+                activeIcon = R.drawable.ic_data_increment,
+                inactiveIcon = R.drawable.ic_data_increment_inactive,
+            )
+        }
+    }
+}
 
 @Composable
+@SuppressLint("RestrictedApi")
 private fun ImageButton(
     modifier: GlanceModifier = GlanceModifier,
     margin: PaddingValues? = null,
+    title: String? = null,
     active: Boolean,
+    useColorTint: Boolean = true,
     @DrawableRes activeIcon: Int,
     @DrawableRes inactiveIcon: Int? = null,
     onClick: () -> Unit
@@ -374,13 +409,15 @@ private fun ImageButton(
         margin?.calculateEndPadding(layoutDirection) ?: 0.dp
     val paddingTop = margin?.calculateTopPadding() ?: 0.dp
     val paddingBottom = margin?.calculateBottomPadding() ?: 0.dp
-    Box(
-        GlanceModifier.padding(
+    Column(
+        modifier = GlanceModifier.padding(
             start = paddingStart,
             end = paddingEnd,
             top = paddingTop,
             bottom = paddingBottom,
-        )
+        ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             modifier = GlanceModifier
@@ -393,57 +430,18 @@ private fun ImageButton(
             ),
             contentDescription = null,
             contentScale = ContentScale.Fit,
+            colorFilter = if (!useColorTint) null else ColorFilter.tint(ColorProvider(Color.White)),
         )
-    }
-}
-
-
-@Composable
-@SuppressLint("RestrictedApi")
-private fun FunctionButton(
-    label: String,
-    active: Boolean,
-    onClick: () -> Unit,
-    defaultWidth: Dp = 60.dp,
-    modifier: GlanceModifier = GlanceModifier,
-) {
-    val bgColor =
-        if (active) DHCarInfoTheme.accent else DHCarInfoTheme.inactive
-    Box(GlanceModifier.then(modifier)) {
-        Box(
-            modifier = GlanceModifier
-                .width(defaultWidth)
-                .height(42.dp)
-                .cornerRadius(android.R.dimen.system_app_widget_inner_radius)
-                .background(bgColor)
-                .clickable { onClick() },
-            contentAlignment = Alignment.Center
-        ) {
+        if (!title.isNullOrEmpty()) {
+            Spacer(GlanceModifier.height(3.dp))
             Text(
-                text = label,
+                text = title,
                 style = TextStyle(
-                    color = ColorProvider(
-                        when {
-                            active -> Color.Black
-                            else -> DHCarInfoTheme.text
-                        }
-                    ),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 11.sp,
+                    color = ColorProvider(DHCarInfoTheme.subText)
                 )
             )
         }
-    }
-}
-
-@Composable
-private fun Dp.toSp(): TextUnit {
-    val resources = LocalContext.current.resources
-    val density = resources.displayMetrics.density
-    val fontScale = resources.configuration.fontScale
-    return with(Density(density, fontScale)) {
-        // 这里使用 Compose 的 Dp.toSp() 扩展函数
-        this@toSp.toSp()
     }
 }
 

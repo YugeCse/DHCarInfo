@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSizeIn
@@ -16,10 +17,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,7 +32,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.theme.DHCarInfoTheme
+import com.car.dh.utils.toColor
+import com.github.skydoves.colorpicker.compose.HsvColorPicker
+import com.github.skydoves.colorpicker.compose.HueSlider
+import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
 /**
  * 空调设置弹窗
@@ -65,6 +73,7 @@ private fun AirSettingsDialogView(
     settings: AirSettingsInfo = AirSettingsInfo.default(),
     onChangeUseAppWidgetBackground: (Boolean) -> Unit = {}
 ) {
+    val globalConfig = LocalGlobalConfig.current
     Box(
         Modifier
             .clip(RoundedCornerShape(12.dp))
@@ -100,7 +109,7 @@ private fun AirSettingsDialogView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "小组件使用默认背景",
+                    text = "使用默认背景",
                     fontSize = 16.sp,
                     color = DHCarInfoTheme.text
                 )
@@ -110,10 +119,74 @@ private fun AirSettingsDialogView(
                     onCheckedChange = onChangeUseAppWidgetBackground
                 )
             }
+            ColorPickItemView(
+                title = "刻度数文本颜色",
+                targetColor =
+                    globalConfig.airAppWidgetMarkNumberColor
+            ) {
+                globalConfig.airAppWidgetMarkNumberColor = it.toColor()
+            }
+            ColorPickItemView(
+                title = "刻度数文本选中颜色",
+                targetColor =
+                    globalConfig.airAppWidgetMarkNumberSelectColor
+            ) {
+                globalConfig.airAppWidgetMarkNumberSelectColor = it.toColor()
+            }
+            ColorPickItemView(
+                title = "刻度线颜色",
+                targetColor =
+                    globalConfig.airAppWidgetMarkOvalColor
+            ) {
+                globalConfig.airAppWidgetMarkOvalColor = it.toColor()
+            }
+            ColorPickItemView(
+                title = "刻度线颜色",
+                targetColor =
+                    globalConfig.airAppWidgetMarkOvalSelectColor
+            ) {
+                globalConfig.airAppWidgetMarkOvalSelectColor = it.toColor()
+            }
+            ColorPickItemView(
+                title = "温度文本颜色",
+                targetColor =
+                    globalConfig.airAppWidgetTempTextColor
+            ) {
+                globalConfig.airAppWidgetTempTextColor = it.toColor()
+            }
         }
     }
 }
 
+/**
+ * 颜色拾取Item视图
+ * @param title 标题
+ * @param targetColor 目标色
+ * @param onColorSelected 颜色选中事件
+ */
+@Composable
+private fun ColorPickItemView(
+    title: String,
+    targetColor: Color,
+    onColorSelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 50.dp)
+            .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            color = DHCarInfoTheme.text
+        )
+        val colorPickController =
+            rememberColorPickerController()
+
+    }
+}
 
 @Composable
 @Preview(device = "id:pixel_9a")
