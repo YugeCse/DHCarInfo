@@ -1,4 +1,4 @@
-package com.car.dh.app;
+package com.car.dh.canbus.connection;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -10,8 +10,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 
-import com.car.dh.canbus.ConnectionObserver;
-import com.car.dh.ipc.IRemoteToolkit;
+import com.car.dh.canbus.ipc.IRemoteToolkit;
 
 import java.util.ArrayList;
 import java.util.Random;

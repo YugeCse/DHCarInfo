@@ -1,4 +1,4 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.main;
 
 /* JADX INFO: loaded from: classes.dex */
 public class HandlerMain {

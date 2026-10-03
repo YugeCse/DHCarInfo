@@ -1,4 +1,4 @@
-package com.car.dh.ipc;
+package com.car.dh.canbus.ipc;
 
 import android.os.Binder;
 import android.os.IBinder;
@@ -7,24 +7,24 @@ import android.os.Parcel;
 import android.os.RemoteException;
 
 /* JADX INFO: loaded from: classes.dex */
-public interface IRemoteToolkit extends IInterface {
-    IRemoteModule getRemoteModule(int i) throws RemoteException;
+public interface IModuleCallback extends IInterface {
+    void update(int i, int[] iArr, float[] fArr, String[] strArr) throws RemoteException;
 
-    public static abstract class Stub extends Binder implements IRemoteToolkit {
-        private static final String DESCRIPTOR = "com.syu.ipc.IRemoteToolkit";
-        static final int TRANSACTION_getRemoteModule = 1;
+    public static abstract class Stub extends Binder implements IModuleCallback {
+        private static final String DESCRIPTOR = "com.syu.ipc.IModuleCallback";
+        static final int TRANSACTION_update = 1;
 
         public Stub() {
             attachInterface(this, DESCRIPTOR);
         }
 
-        public static IRemoteToolkit asInterface(IBinder obj) {
+        public static IModuleCallback asInterface(IBinder obj) {
             if (obj == null) {
                 return null;
             }
             IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (iin != null && (iin instanceof IRemoteToolkit)) {
-                return (IRemoteToolkit) iin;
+            if (iin != null && (iin instanceof IModuleCallback)) {
+                return (IModuleCallback) iin;
             }
             return new Proxy(obj);
         }
@@ -39,10 +39,11 @@ public interface IRemoteToolkit extends IInterface {
             switch (code) {
                 case 1:
                     data.enforceInterface(DESCRIPTOR);
-                    int moduleCode = data.readInt();
-                    IRemoteModule result = getRemoteModule(moduleCode);
-                    reply.writeNoException();
-                    reply.writeStrongBinder(result != null ? result.asBinder() : null);
+                    int updateCode = data.readInt();
+                    int[] ints = data.createIntArray();
+                    float[] flts = data.createFloatArray();
+                    String[] strs = data.createStringArray();
+                    update(updateCode, ints, flts, strs);
                     return true;
                 case 1598968902:
                     reply.writeString(DESCRIPTOR);
@@ -52,7 +53,7 @@ public interface IRemoteToolkit extends IInterface {
             }
         }
 
-        private static class Proxy implements IRemoteToolkit {
+        private static class Proxy implements IModuleCallback {
             private IBinder mRemote;
 
             Proxy(IBinder remote) {
@@ -64,19 +65,17 @@ public interface IRemoteToolkit extends IInterface {
                 return this.mRemote;
             }
 
-            @Override // com.syu.ipc.IRemoteToolkit
-            public IRemoteModule getRemoteModule(int moduleCode) throws RemoteException {
+            @Override // com.syu.ipc.IModuleCallback
+            public void update(int updateCode, int[] ints, float[] flts, String[] strs) throws RemoteException {
                 Parcel data = Parcel.obtain();
-                Parcel reply = Parcel.obtain();
                 try {
                     data.writeInterfaceToken(Stub.DESCRIPTOR);
-                    data.writeInt(moduleCode);
-                    this.mRemote.transact(1, data, reply, 0);
-                    reply.readException();
-                    IRemoteModule result = IRemoteModule.Stub.asInterface(reply.readStrongBinder());
-                    return result;
+                    data.writeInt(updateCode);
+                    data.writeIntArray(ints);
+                    data.writeFloatArray(flts);
+                    data.writeStringArray(strs);
+                    this.mRemote.transact(1, data, null, 1);
                 } finally {
-                    reply.recycle();
                     data.recycle();
                 }
             }

@@ -1,4 +1,4 @@
-package com.car.dh.ipc;
+package com.car.dh.canbus.ipc;
 
 /* JADX INFO: loaded from: classes.dex */
 public class ModuleObject {

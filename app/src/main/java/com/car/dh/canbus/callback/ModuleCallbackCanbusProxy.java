@@ -1,9 +1,10 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.callback;
 
-import android.content.Intent;
 import android.os.RemoteException;
 
-import com.car.dh.ipc.IModuleCallback;
+import com.car.dh.canbus.data.FinalCanbus;
+import com.car.dh.canbus.handler.HandlerCanbus;
+import com.car.dh.canbus.ipc.IModuleCallback;
 
 /* JADX INFO: loaded from: classes.dex */
 public class ModuleCallbackCanbusProxy extends IModuleCallback.Stub {

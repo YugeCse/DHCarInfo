@@ -1,6 +1,6 @@
 package com.car.dh.ui.screen.base
 
-import com.car.dh.canbus.DataCanbus
+import com.car.dh.canbus.data.DataCanbus
 
 /** 天窗控制类 **/
 object SkyController {

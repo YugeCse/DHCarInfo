@@ -1,8 +1,11 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.connection;
 
 import android.os.RemoteException;
 
-import com.car.dh.ipc.IRemoteToolkit;
+import com.car.dh.canbus.data.DataCanbus;
+import com.car.dh.canbus.data.FinalCanbus;
+import com.car.dh.canbus.callback.ModuleCallbackCanbusProxy;
+import com.car.dh.canbus.ipc.IRemoteToolkit;
 
 /* JADX INFO: loaded from: classes.dex */
 public class ConnectionCanbus implements ConnectionObserver {

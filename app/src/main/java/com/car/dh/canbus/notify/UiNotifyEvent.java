@@ -1,7 +1,8 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.notify;
 
 import android.os.Handler;
 import android.os.Looper;
+
 import java.util.ArrayList;
 
 /* JADX INFO: loaded from: classes.dex */

@@ -5,7 +5,7 @@
     android:initialLayout="@layout/air_control_app_widget"
     android:minWidth="40dp"
     android:minHeight="110dp"
-    android:previewImage="@drawable/example_appwidget_preview"
+    android:previewImage="@drawable/img_air_app_widget"
     android:previewLayout="@layout/air_control_app_widget"
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="1"

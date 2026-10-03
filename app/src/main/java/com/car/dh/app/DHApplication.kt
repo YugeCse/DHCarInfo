@@ -1,8 +1,9 @@
 package com.car.dh.app
 
 import android.app.Application
-import com.car.dh.canbus.ConnectionCanbus
-import com.car.dh.canbus.ConnectionMain
+import com.car.dh.canbus.connection.ConnectionCanbus
+import com.car.dh.canbus.connection.ConnectionMain
+import com.car.dh.canbus.connection.MsToolkitConnection
 import com.car.dh.canbus.up.ConnectionCanUp
 
 /** Application对象 **/

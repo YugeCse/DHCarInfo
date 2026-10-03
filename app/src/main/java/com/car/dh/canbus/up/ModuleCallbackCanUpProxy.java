@@ -2,7 +2,7 @@ package com.car.dh.canbus.up;
 
 import android.os.RemoteException;
 
-import com.car.dh.ipc.IModuleCallback;
+import com.car.dh.canbus.ipc.IModuleCallback;
 
 /* JADX INFO: loaded from: classes.dex */
 public class ModuleCallbackCanUpProxy extends IModuleCallback.Stub {

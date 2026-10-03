@@ -1,4 +1,4 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.notify;
 
 /* JADX INFO: loaded from: classes.dex */
 public interface IUiNotify {

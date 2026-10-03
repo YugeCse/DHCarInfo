@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.HorizontalDivider
@@ -63,195 +62,216 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun AirControlScreen(modifier: Modifier = Modifier) {
-    val viewModel = viewModel<AirControlViewModel>()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // ---------- 温度：完全本地维护 ----------
-    // 只在首次组合时读一次 DATA，之后用户点 +/- 只改本地值。
-    // 如果首次读到无效值（-1/-2/-3 或 0），使用默认温度。
-    val localTemp by remember {
-        derivedStateOf {
-            val raw = viewModel.controller.getTempLeft()
-            if (raw >= AirController.TEMP_MIN &&
-                raw <= AirController.TEMP_MAX
-            ) raw else AirController.TEMP_DEFAULT
-        }
-    }
-
-    // ---------- 风量：完全本地维护 ----------
-    val localWind by remember {
-        val raw = viewModel.controller.getWindLevel()
-        derivedStateOf {
-            raw.coerceIn(
-                AirController.WIND_MIN,
-                AirController.WIND_MAX
-            )
-        }
-    }
-    // ---------- A/C：本地预测 ----------
-    var localAc by remember { mutableStateOf<Int?>(null) }
-    val displayAc = localAc ?: uiState.ac
-    LaunchedEffect(uiState.ac) {
-        if (localAc != null && localAc == uiState.ac) localAc = null
-    }
-
-    // ---------- 循环：本地预测 ----------
-    var localCycle by remember { mutableStateOf<Int?>(null) }
-    val displayCycle = localCycle ?: uiState.cycle
-    LaunchedEffect(uiState.cycle) {
-        if (localCycle != null && localCycle == uiState.cycle) localCycle = null
-    }
-
-    // ---------- 模式：完全本地维护 ----------
-    // 只有"模式切换"命令，没有独立吹风位命令，本地循环显示 5 种状态。
-    val modeLabels = listOf("吹面", "吹面+吹脚", "吹脚", "吹脚+除霜", "除霜")
-    var modeIndex by remember { mutableIntStateOf(0) }
-    val modeLabel = modeLabels[modeIndex]
-    // 兜底轮询：只用来同步开关类状态，不涉及温度/风量
-    LaunchedEffect(viewModel) {
-        while (isActive) {
-            viewModel.syncAll()
-            delay(300.milliseconds)
-        }
-    }
     Box(
-        modifier = Modifier
+        Modifier
             .then(modifier)
             .fillMaxSize()
-            .background(DHCarInfoTheme.bg)
-            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+        val viewModel = viewModel<AirControlViewModel>()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val airStateInfo = uiState.airStateInfo
+        // ---------- 温度：完全本地维护 ----------
+        // 只在首次组合时读一次 DATA，之后用户点 +/- 只改本地值。
+        // 如果首次读到无效值（-1/-2/-3 或 0），使用默认温度。
+        val localTemp by remember {
+            derivedStateOf {
+                val raw = viewModel.controller.getTempLeft()
+                if (raw >= AirController.TEMP_MIN &&
+                    raw <= AirController.TEMP_MAX
+                ) raw else AirController.TEMP_DEFAULT
+            }
+        }
+
+        // ---------- 风量：完全本地维护 ----------
+        val localWind by remember {
+            val raw = viewModel.controller.getWindLevel()
+            derivedStateOf {
+                raw.coerceIn(
+                    AirController.WIND_MIN,
+                    AirController.WIND_MAX
+                )
+            }
+        }
+        // ---------- A/C：本地预测 ----------
+        var localAc by remember { mutableStateOf<Int?>(null) }
+        val displayAc = localAc ?: airStateInfo.ac
+        LaunchedEffect(airStateInfo.ac) {
+            if (localAc != null && localAc == airStateInfo.ac) localAc = null
+        }
+
+        // ---------- 循环：本地预测 ----------
+        var localCycle by remember { mutableStateOf<Int?>(null) }
+        val displayCycle = localCycle ?: airStateInfo.cycle
+        LaunchedEffect(airStateInfo.cycle) {
+            if (localCycle != null && localCycle == airStateInfo.cycle) localCycle = null
+        }
+
+        // ---------- 模式：完全本地维护 ----------
+        // 只有"模式切换"命令，没有独立吹风位命令，本地循环显示 5 种状态。
+        val modeLabels = listOf("吹面", "吹面+吹脚", "吹脚", "吹脚+除霜", "除霜")
+        var modeIndex by remember { mutableIntStateOf(0) }
+        val modeLabel = modeLabels[modeIndex]
+        // 兜底轮询：只用来同步开关类状态，不涉及温度/风量
+        LaunchedEffect(viewModel) {
+            while (isActive) {
+                viewModel.syncAirStateData()
+                delay(300.milliseconds)
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DHCarInfoTheme.bg)
+                .padding(16.dp)
         ) {
-            // ---------- 顶部：温度面板 + 悬浮电源 ----------
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(DHCarInfoTheme.panel)
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                contentAlignment = Alignment.TopStart
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(Modifier.fillMaxSize()) {
-                    val isLandscape =
-                        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-                    TemperaturePanel(
-                        modifier = Modifier
-                            .run {
-                                if (!isLandscape) this
-                                else padding(horizontal = 50.dp)
-                            }
-                            .fillMaxWidth()
-                            .weight(1f),
-                        temp = localTemp,
-                        onTempUp = { viewModel.controller.increaseTemp() },
-                        onTempDown = { viewModel.controller.decreaseTemp() },
-                        onRelease = viewModel.controller::releaseKey,
-                    )
-                    HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
-                    // ---------- 风量 ----------
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 20.dp)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        WindPanel(
-                            level = localWind,
-                            onUpPress = {
-                                val next = (localWind + 1)
-                                    .coerceAtMost(AirController.WIND_MAX)
-                                if (next != localWind) {
-                                    viewModel.controller.setWindLevel(next)
-                                }
-                            },
-                            onDownPress = {
-                                val next = (localWind - 1)
-                                    .coerceAtLeast(AirController.WIND_MIN)
-                                if (next != localWind) {
-                                    viewModel.controller.setWindLevel(next)
-                                }
-                            },
-                            onRelease = viewModel.controller::releaseKey
-                        )
-                    }
-
-
-                    // ---------- 功能按钮：A/C、循环、前除霜、模式 ----------
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        FunctionButton(
-                            label = when (displayCycle) {
-                                0 -> "外循环"
-                                1 -> "内循环"
-                                else -> "自动"
-                            },
-                            active = displayAc == 1,
-                            onPress = viewModel.controller::toggleCycle,
-                            onRelease = viewModel.controller::releaseKey,
-                            modifier = Modifier.weight(1f)
-                        )
-                        FunctionButton(
-                            modifier = Modifier.weight(1f),
-                            label = "前除霜",
-                            active = uiState.frontDefrost == 1,
-                            onPress = viewModel.controller::toggleFrontDefrost,
-                            onRelease = viewModel.controller::releaseKey,
-                        )
-                        FunctionButton(
-                            modifier = Modifier.weight(1f),
-                            label = modeLabel,
-                            active = uiState.modeBody == 1 ||
-                                    uiState.modeUp == 1 ||
-                                    uiState.modeFoot == 1,
-                            onPress = {
-                                modeIndex = (modeIndex + 1) % modeLabels.size
-                                viewModel.controller.toggleMode()
-                            },
-                            onRelease = viewModel.controller::releaseKey,
-                        )
-                        Image(
+                // ---------- 顶部：温度面板 + 悬浮电源 ----------
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(DHCarInfoTheme.panel)
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    Column(Modifier.fillMaxSize()) {
+                        val isLandscape =
+                            LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                        TemperaturePanel(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(DHCarInfoTheme.inactive)
-                                .padding(8.dp)
-                                .size(42.dp)
-                                //.background(DHCarInfoTheme.panel)
-                                .clickable(onClick = { ActivityLaunch.backHomeDesktop() }),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            painter = painterResource(R.drawable.ic_back_home)
+                                .run {
+                                    if (!isLandscape) this
+                                    else padding(horizontal = 50.dp)
+                                }
+                                .fillMaxWidth()
+                                .weight(1f),
+                            temp = localTemp,
+                            onTempUp = { viewModel.controller.increaseTemp() },
+                            onTempDown = { viewModel.controller.decreaseTemp() },
+                            onRelease = viewModel.controller::releaseKey,
                         )
+                        HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
+                        // ---------- 风量 ----------
+                        Row(
+                            modifier = Modifier
+                                .padding(top = 20.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            WindPanel(
+                                level = localWind,
+                                onUpPress = {
+                                    val next = (localWind + 1)
+                                        .coerceAtMost(AirController.WIND_MAX)
+                                    if (next != localWind) {
+                                        viewModel.controller.setWindLevel(next)
+                                    }
+                                },
+                                onDownPress = {
+                                    val next = (localWind - 1)
+                                        .coerceAtLeast(AirController.WIND_MIN)
+                                    if (next != localWind) {
+                                        viewModel.controller.setWindLevel(next)
+                                    }
+                                },
+                                onRelease = viewModel.controller::releaseKey
+                            )
+                        }
+
+
+                        // ---------- 功能按钮：A/C、循环、前除霜、模式 ----------
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            FunctionButton(
+                                label = when (displayCycle) {
+                                    0 -> "外循环"
+                                    1 -> "内循环"
+                                    else -> "自动"
+                                },
+                                active = displayAc == 1,
+                                onPress = viewModel.controller::toggleCycle,
+                                onRelease = viewModel.controller::releaseKey,
+                                modifier = Modifier.weight(1f)
+                            )
+                            FunctionButton(
+                                modifier = Modifier.weight(1f),
+                                label = "前除霜",
+                                active = airStateInfo.frontDefrost == 1,
+                                onPress = viewModel.controller::toggleFrontDefrost,
+                                onRelease = viewModel.controller::releaseKey,
+                            )
+                            FunctionButton(
+                                modifier = Modifier.weight(1f),
+                                label = modeLabel,
+                                active = airStateInfo.modeBody == 1 ||
+                                        airStateInfo.modeUp == 1 ||
+                                        airStateInfo.modeFoot == 1,
+                                onPress = {
+                                    modeIndex = (modeIndex + 1) % modeLabels.size
+                                    viewModel.controller.toggleMode()
+                                },
+                                onRelease = viewModel.controller::releaseKey,
+                            )
+                            Image(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DHCarInfoTheme.inactive)
+                                    .padding(8.dp)
+                                    .size(42.dp)
+                                    .clickable(onClick = {
+                                        viewModel.isAirSettingDialogVisible = true
+                                    }),
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                painter = painterResource(R.drawable.ic_air_settings)
+                            )
+                            Image(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DHCarInfoTheme.inactive)
+                                    .padding(8.dp)
+                                    .size(42.dp)
+                                    .clickable(onClick = { ActivityLaunch.backHomeDesktop() }),
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                painter = painterResource(R.drawable.ic_back_home)
+                            )
+                        }
                     }
                 }
             }
+            ImageButton(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+                    .size(46.dp),
+                active = airStateInfo.ac == 1,
+                activeIcon = R.drawable.ic_air_ac_status_on,
+                inactiveIcon = R.drawable.ic_air_ac_status_off,
+                onPress = viewModel.controller::toggleAc,
+                onRelease = viewModel.controller::releaseKey,
+            )
+            ImageButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .size(46.dp),
+                active = airStateInfo.power == 1,
+                activeIcon = R.drawable.ic_air_power_status_on,
+                inactiveIcon = R.drawable.ic_air_power_status_off,
+                onPress = viewModel.controller::togglePower,
+                onRelease = viewModel.controller::releaseKey,
+            )
         }
-        ImageButton(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
-                .size(46.dp),
-            active = uiState.ac == 1,
-            activeIcon = R.drawable.ic_ac_status_on,
-            inactiveIcon = R.drawable.ic_ac_status_off,
-            onPress = viewModel.controller::toggleAc,
-            onRelease = viewModel.controller::releaseKey,
-        )
-        ImageButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
-                .size(46.dp),
-            active = uiState.power == 1,
-            activeIcon = R.drawable.ic_air_status_on,
-            inactiveIcon = R.drawable.ic_air_status_off,
-            onPress = viewModel.controller::togglePower,
-            onRelease = viewModel.controller::releaseKey,
-        )
+        AirSettingsDialog(isVisible = uiState.isAirSettingsDialogVisible) {
+            viewModel.isAirSettingDialogVisible = false
+        }
     }
 }
 

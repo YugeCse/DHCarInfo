@@ -1,7 +1,8 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.main;
 
 
-import com.car.dh.ipc.RemoteModuleProxy;
+import com.car.dh.canbus.notify.UiNotifyEvent;
+import com.car.dh.canbus.ipc.RemoteModuleProxy;
 
 /* JADX INFO: loaded from: classes.dex */
 public class DataMain {

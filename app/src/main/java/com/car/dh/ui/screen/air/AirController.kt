@@ -1,6 +1,6 @@
 package com.car.dh.ui.screen.air
 
-import com.car.dh.canbus.DataCanbus
+import com.car.dh.canbus.data.DataCanbus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

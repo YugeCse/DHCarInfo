@@ -1,8 +1,8 @@
 package com.car.dh.canbus.up;
 
 
-import com.car.dh.canbus.UiNotifyEvent;
-import com.car.dh.ipc.RemoteModuleProxy;
+import com.car.dh.canbus.notify.UiNotifyEvent;
+import com.car.dh.canbus.ipc.RemoteModuleProxy;
 
 /* JADX INFO: loaded from: classes.dex */
 public class DataCanUp {

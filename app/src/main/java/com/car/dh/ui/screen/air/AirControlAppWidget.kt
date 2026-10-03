@@ -33,6 +33,7 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
@@ -58,6 +59,7 @@ import androidx.glance.unit.ColorProvider
 import androidx.glance.unit.FixedColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
+import com.car.dh.app.GlobalConfig
 import com.car.dh.ui.theme.DHCarInfoTheme
 
 /** 空调控制微件BroadcastReceiver **/
@@ -103,6 +105,7 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
     val dataVersion by AirStateDataChange
         .dataChangeFlow
         .collectAsState(0L)
+    val globalConfig = remember { GlobalConfig.singleton() }
     key(dataVersion) {
         val airController = AirController.singleton()
         val isPowerOn = airController.getPower() == 1
@@ -146,11 +149,11 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
         }
         Box(
             modifier = GlanceModifier
-                // .run {
-                //     if (!BuildConfig.DEBUG) this
-                //     else background(DHCarInfoTheme.bg)
-                // }
                 .cornerRadius(android.R.dimen.system_app_widget_background_radius)
+                .run {
+                    if (!globalConfig.isAirAppWidgetRenderBackground) this
+                    else background(ImageProvider(R.drawable.bg_app_widget))
+                }
                 .fillMaxSize()
                 .padding(16.dp),
             contentAlignment = Alignment.TopEnd
@@ -159,16 +162,16 @@ private fun AirControlAppWidgetContent(widgetSize: DpSize = DpSize(400.dp, 300.d
                 modifier = GlanceModifier.size(40.dp),
                 active = isPowerOn,
                 onClick = airController::togglePower,
-                activeIcon = R.drawable.ic_air_status_on,
-                inactiveIcon = R.drawable.ic_air_status_off,
+                activeIcon = R.drawable.ic_air_power_status_on,
+                inactiveIcon = R.drawable.ic_air_power_status_off,
             )
             Box(GlanceModifier.fillMaxWidth()) {
                 ImageButton(
                     modifier = GlanceModifier.size(36.dp),
                     active = isAcOn,
                     onClick = airController::toggleAc,
-                    activeIcon = R.drawable.ic_ac_status_on,
-                    inactiveIcon = R.drawable.ic_ac_status_off,
+                    activeIcon = R.drawable.ic_air_ac_status_on,
+                    inactiveIcon = R.drawable.ic_air_ac_status_off,
                 )
             }
             Column(

@@ -35,6 +35,7 @@
         android:theme="@style/Theme.DHCarInfo">
         <activity
             android:name=".MainActivity"
+            android:configChanges="uiMode|orientation|keyboardHidden|screenLayout|screenSize|smallestScreenSize"
             android:exported="false"
             android:screenOrientation="fullSensor"
             android:theme="@style/Theme.Transparent"

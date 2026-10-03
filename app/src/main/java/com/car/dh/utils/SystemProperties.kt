@@ -2,6 +2,7 @@ package com.car.dh.utils
 
 import android.annotation.SuppressLint
 
+/** 通过反射获取系统属性的类 **/
 @SuppressLint("PrivateApi")
 object SystemProperties {
 

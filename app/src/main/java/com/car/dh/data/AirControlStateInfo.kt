@@ -2,6 +2,9 @@ package com.car.dh.data
 
 import androidx.compose.runtime.Stable
 
+/**
+ * 空调控制状态数据实体类
+ */
 @Stable
 data class AirControlStateInfo(
     val power: Int,

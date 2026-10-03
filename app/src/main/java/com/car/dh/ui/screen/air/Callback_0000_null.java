@@ -1,10 +1,10 @@
 package com.car.dh.ui.screen.air;
 
-import com.car.dh.canbus.CallbackCanbusBase;
-import com.car.dh.canbus.DataCanbus;
-import com.car.dh.canbus.HandlerCanbus;
-import com.car.dh.canbus.ModuleCallbackCanbusProxy;
-import com.car.dh.ipc.IModuleCallback;
+import com.car.dh.canbus.callback.CallbackCanbusBase;
+import com.car.dh.canbus.data.DataCanbus;
+import com.car.dh.canbus.handler.HandlerCanbus;
+import com.car.dh.canbus.callback.ModuleCallbackCanbusProxy;
+import com.car.dh.canbus.ipc.IModuleCallback;
 
 /* JADX INFO: loaded from: classes.dex */
 public class Callback_0000_null extends CallbackCanbusBase {

@@ -1,5 +1,9 @@
-package com.car.dh.canbus;
+package com.car.dh.canbus.handler;
 
+import com.car.dh.canbus.callback.CallbackCanbusBase;
+import com.car.dh.canbus.data.DataCanbus;
+import com.car.dh.canbus.callback.ModuleCallbackCanbusProxy;
+import com.car.dh.canbus.notify.IUiNotify;
 import com.car.dh.ui.screen.air.CallbackCanbus;
 
 /* JADX INFO: loaded from: classes.dex */

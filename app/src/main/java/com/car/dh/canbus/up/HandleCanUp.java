@@ -1,6 +1,6 @@
 package com.car.dh.canbus.up;
 
-import com.car.dh.canbus.IUiNotify;
+import com.car.dh.canbus.notify.IUiNotify;
 
 /* JADX INFO: loaded from: classes.dex */
 public class HandleCanUp {
