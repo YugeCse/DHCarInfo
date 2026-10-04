@@ -270,14 +270,15 @@ private fun AirControlAppWidgetContent(
                         modifier = GlanceModifier
                             .background(
                                 ImageProvider(
-                                    if (!isFrontDefrost)
-                                        R.drawable.bg_btn_inactive
+                                    if (isPowerOn &&
+                                        !isFrontDefrost
+                                    ) R.drawable.bg_btn_inactive
                                     else R.drawable.bg_btn_active
                                 )
                             )
                             .size(50.dp)
                             .padding(8.dp),
-                        title = "A/C",
+                        title = "除雾",
                         onClick = airController::toggleFrontDefrost,
                         active = isFrontDefrost,
                         activeIcon = R.drawable.ic_air_front_defrost,
@@ -287,8 +288,9 @@ private fun AirControlAppWidgetContent(
                         modifier = GlanceModifier
                             .background(
                                 ImageProvider(
-                                    if (cycleMode !in arrayOf(0, 1))
-                                        R.drawable.bg_btn_inactive
+                                    if (isPowerOn &&
+                                        cycleMode !in arrayOf(0, 1)
+                                    ) R.drawable.bg_btn_inactive
                                     else R.drawable.bg_btn_active
                                 )
                             )
@@ -296,17 +298,18 @@ private fun AirControlAppWidgetContent(
                             .padding(8.dp),
                         title = "模式",
                         onClick = airController::toggleCycle,
-                        active = cycleMode in arrayOf(0, 1),
+                        active = isPowerOn &&
+                                cycleMode in arrayOf(0, 1),
                         inactiveIcon = when (cycleMode) {
                             0 -> R.drawable.ic_air_mode_out_cycle
                             else -> R.drawable.ic_air_mode_auto_cycle
                         },
                         activeIcon = R.drawable.ic_air_mode_in_cycle,
                     )
-                    val isDirAvailable =
-                        airController.getBlowUp() == 1 ||
-                                airController.getBlowBody() == 1 ||
-                                airController.getBlowFoot() == 1
+                    val isDirAvailable = (isPowerOn &&
+                            (airController.getBlowUp() == 1 ||
+                                    airController.getBlowBody() == 1 ||
+                                    airController.getBlowFoot() == 1))
                     Spacer(GlanceModifier.defaultWeight())
                     ImageButton(
                         modifier = GlanceModifier
