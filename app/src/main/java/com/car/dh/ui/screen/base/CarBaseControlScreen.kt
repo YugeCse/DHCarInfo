@@ -173,6 +173,20 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
             isLockAutoCloseWindow = !isLockAutoCloseWindow
         }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
+        val findCarTags = listOf("仅灯光", "灯光与喇叭")
+        var findCarTagIndex by remember {
+            mutableIntStateOf(carBaseController.getFindCarIndicator())
+        }
+        ControlItemView(
+            title = "寻车指示",
+            selection = findCarTags[findCarTagIndex],
+            options = findCarTags,
+            onOptionSelected = {index, _ ->
+                findCarTagIndex = index
+                carBaseController.setFindCarIndicator(index)
+            }
+        )
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
         var isActiveCabinCleanEnabled by remember {
             mutableStateOf(carBaseController.isActiveCabinCleanEnabled())
         }
@@ -224,20 +238,6 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
         ControlItemView(
             title = "胎压监测系统校准",
             onClick = { carBaseController.calibrateTirePressure() })
-        HorizontalDivider(color = DHCarInfoTheme.inactive)
-        val findCarTags = listOf("仅灯光", "灯光与喇叭")
-        var findCarTagIndex by remember {
-            mutableIntStateOf(carBaseController.getFindCarIndicator())
-        }
-        ControlItemView(
-            title = "寻车指示",
-            selection = findCarTags[findCarTagIndex],
-            options = findCarTags,
-            onOptionSelected = {index, _ ->
-                findCarTagIndex = index
-                carBaseController.setFindCarIndicator(index)
-            }
-        )
         HorizontalDivider(color = DHCarInfoTheme.inactive)
     }
 }
