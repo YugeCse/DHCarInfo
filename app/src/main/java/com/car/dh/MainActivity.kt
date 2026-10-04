@@ -29,9 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.car.dh.app.GlobalConfig
 import com.car.dh.ui.screen.air.AirControlScreen
 import com.car.dh.ui.screen.air.AirStateDataChange
 import com.car.dh.ui.screen.base.CarBaseControlScreen
+import com.car.dh.ui.screen.base.CarBaseController
 import com.car.dh.ui.screen.base.SkyControlScreen
 import com.car.dh.ui.theme.DHCarInfoTheme
 
@@ -121,7 +123,16 @@ class MainActivity : ComponentActivity() {
         val component = intent.component ?: return
         val className = component.className
         if (className.endsWith("MainActivityDefault")) {
-            finish() //关掉当前页面
+            try {
+                val globalConfig = GlobalConfig.singleton()
+                val carBaseController = CarBaseController.singleton()
+                carBaseController.setLanguage(globalConfig.carSystemLanguage)
+                carBaseController.setDriveMode2(globalConfig.carDriveMode)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                finish() //关掉当前页面
+            }
         } else if (className.endsWith("MainActivityDefault2")) {
             onLaunched()
         }

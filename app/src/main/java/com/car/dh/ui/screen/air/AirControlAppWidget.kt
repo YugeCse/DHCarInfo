@@ -203,7 +203,6 @@ private fun AirControlAppWidgetContent(
                 modifier = GlanceModifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 1. 显示绘制好的半圆弧
                 var reqHeight = widgetSize.width
                 if (widgetSize.height < reqHeight)
                     reqHeight = widgetSize.height
@@ -270,7 +269,7 @@ private fun AirControlAppWidgetContent(
                         modifier = GlanceModifier
                             .background(
                                 ImageProvider(
-                                    if (isPowerOn &&
+                                    if (!isPowerOn ||
                                         !isFrontDefrost
                                     ) R.drawable.bg_btn_inactive
                                     else R.drawable.bg_btn_active
@@ -279,8 +278,8 @@ private fun AirControlAppWidgetContent(
                             .size(50.dp)
                             .padding(8.dp),
                         title = "除雾",
+                        active = isPowerOn && isFrontDefrost,
                         onClick = airController::toggleFrontDefrost,
-                        active = isFrontDefrost,
                         activeIcon = R.drawable.ic_air_front_defrost,
                     )
                     Spacer(GlanceModifier.defaultWeight())
@@ -288,7 +287,7 @@ private fun AirControlAppWidgetContent(
                         modifier = GlanceModifier
                             .background(
                                 ImageProvider(
-                                    if (isPowerOn &&
+                                    if (!isPowerOn ||
                                         cycleMode !in arrayOf(0, 1)
                                     ) R.drawable.bg_btn_inactive
                                     else R.drawable.bg_btn_active
@@ -325,7 +324,6 @@ private fun AirControlAppWidgetContent(
                         onClick = airController::toggleMode,
                         title = "风向",
                         active = isDirAvailable,
-                        inactiveIcon = R.drawable.ic_air_dir_frost,
                         activeIcon = when {
                             airController.getBlowUp() == 1 ->
                                 R.drawable.ic_air_dir_face
@@ -338,6 +336,7 @@ private fun AirControlAppWidgetContent(
 
                             else -> R.drawable.ic_air_dir_frost
                         },
+                        inactiveIcon = R.drawable.ic_air_dir_frost,
                     )
                 }
             }

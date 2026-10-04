@@ -339,6 +339,7 @@ class CarBaseController private constructor() {
 
     /** 伴我回家持续时间：更新码 181，功能码 39，值 0=30s，1=60s，2=90s */
     fun getHomeDelay(): Int = getInt(UPDATE_HOME_DELAY)
+
     fun setHomeDelay(value: Int) = sendCmd(CMD_SET, FUNC_HOME_DELAY, value)
 
     /** 主题颜色设置：更新码 158，功能码 28，值 0=蓝，1=红，2=与车速联动，3=黄 */

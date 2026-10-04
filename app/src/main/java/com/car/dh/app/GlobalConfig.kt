@@ -24,6 +24,18 @@ class GlobalConfig private constructor() {
 
     private val prefs by lazy { PrefsUtils.singleton() }
 
+    /** 获取或设置车机系统语言 **/
+    var carSystemLanguage: Int
+        set(value) {
+            prefs.put("carSystemLanguage", value)
+        }
+        get() = prefs.getInt("carSystemLanguage", 0)
+
+    /** 获取或设置驾驶模式 **/
+    var carDriveMode: Int
+        set(value) = prefs.put("carDriveMode", value)
+        get() = prefs.getInt("carDriveMode", 0)
+
     /** 空调小组件是否有背景色支持 **/
     var isAirAppWidgetRenderBackground: Boolean
         set(value) {
