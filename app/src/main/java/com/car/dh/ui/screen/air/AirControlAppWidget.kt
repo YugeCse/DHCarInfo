@@ -91,11 +91,11 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             var currentSize = LocalSize.current
-//            if (currentSize.width < 60.dp) {
-//                var maxSize = max(currentSize.width, currentSize.height)
-//                if (maxSize < 300.dp) maxSize = 300.dp
-//                currentSize = DpSize(maxSize, maxSize + 20.dp)
-//            }
+            if (currentSize.width < 60.dp) {
+                var maxSize = max(currentSize.width, currentSize.height)
+                if (maxSize < 360.dp) maxSize = 360.dp
+                currentSize = DpSize(maxSize, maxSize + 30.dp)
+            }
             AirControlAppWidgetContent(widgetSize = currentSize)
         }
     }
