@@ -67,7 +67,7 @@ class GlobalConfig private constructor() {
         get() {
             val hexCode = prefs.getString(
                 "airAppWidgetMarkNumberSelectColor",
-                DHCarInfoTheme.subText.toHexCode()
+                DHCarInfoTheme.accent.toHexCode()
             )
             return Color(android.graphics.Color.parseColor(hexCode))
         }
@@ -95,7 +95,7 @@ class GlobalConfig private constructor() {
         get() {
             val hexCode = prefs.getString(
                 "airAppWidgetMarkOvalSelectColor",
-                DHCarInfoTheme.inactive.toHexCode()
+                DHCarInfoTheme.accent.toHexCode()
             )
             return Color(android.graphics.Color.parseColor(hexCode))
         }
@@ -110,6 +110,17 @@ class GlobalConfig private constructor() {
             "airAppWidgetTempTextColor",
             DHCarInfoTheme.accent.toHexCode()
         )?.toColor() ?: DHCarInfoTheme.accent
+
+    /** 空调小组件子文本颜色 **/
+    var airAppWidgetSubTextColor: Color
+        set(value) {
+            prefs.put("airAppWidgetSubTextColor", value.toHexCode())
+            AirStateDataChange.notifyDataChanged()
+        }
+        get() = prefs.getString(
+            "airAppWidgetSubTextColor",
+            DHCarInfoTheme.subText.toHexCode()
+        )?.toColor() ?: DHCarInfoTheme.subText
 
 }
 

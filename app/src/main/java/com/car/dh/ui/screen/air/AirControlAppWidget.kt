@@ -91,11 +91,11 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             var currentSize = LocalSize.current
-            if (currentSize.width < 60.dp) {
-                var maxSize = max(currentSize.width, currentSize.height)
-                if (maxSize < 300.dp) maxSize = 300.dp
-                currentSize = DpSize(maxSize, maxSize + 20.dp)
-            }
+//            if (currentSize.width < 60.dp) {
+//                var maxSize = max(currentSize.width, currentSize.height)
+//                if (maxSize < 300.dp) maxSize = 300.dp
+//                currentSize = DpSize(maxSize, maxSize + 20.dp)
+//            }
             AirControlAppWidgetContent(widgetSize = currentSize)
         }
     }
@@ -110,7 +110,6 @@ private fun AirControlAppWidgetContent(
     val dataVersion by AirStateDataChange
         .dataChangeFlow
         .collectAsState(0L)
-    val globalConfig = remember { GlobalConfig.singleton() }
     key(dataVersion) {
         val globalConfig = LocalGlobalConfig.current
         val airController = AirController.singleton()
@@ -139,10 +138,12 @@ private fun AirControlAppWidgetContent(
             pixelSize,
             temp,
             activeGear,
-            tempTextSize
+            tempTextSize,
+            isPowerOn,
         ) {
             AcArcDrawer.drawAcArc(
                 globalConfig = globalConfig,
+                active = isPowerOn,
                 currentTemp = temp,
                 totalGears = 8,
                 activeGear = activeGear,
@@ -200,27 +201,24 @@ private fun AirControlAppWidgetContent(
                 )
             }
             Column(
-                modifier = GlanceModifier.fillMaxSize(),
+                modifier = GlanceModifier
+                    .padding(top = 50.dp)
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var reqHeight = widgetSize.width
                 if (widgetSize.height < reqHeight)
                     reqHeight = widgetSize.height
-                Box(
+                Image(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .height(reqHeight / 2f),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    Image(
-                        provider = ImageProvider(arcBitmap),
-                        contentDescription = "空调档位与温度",
-                        modifier = GlanceModifier.fillMaxSize()
-                    )
-                }
+                    provider = ImageProvider(arcBitmap),
+                    contentDescription = "空调档位与温度",
+                )
                 Row(
                     modifier = GlanceModifier
-                        .padding(20.dp)
+                        .padding(12.dp)
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -228,6 +226,7 @@ private fun AirControlAppWidgetContent(
                         modifier = GlanceModifier.defaultWeight(),
                         title = "风量",
                         active = isPowerOn,
+                        titleColor = globalConfig.airAppWidgetSubTextColor,
                         onDecrementClick = {
                             val next = (activeGear - 1)
                                 .coerceAtLeast(AirController.WIND_MIN)
@@ -243,6 +242,7 @@ private fun AirControlAppWidgetContent(
                     ControlAdjustView(
                         modifier = GlanceModifier.defaultWeight(),
                         title = "温度",
+                        titleColor = globalConfig.airAppWidgetSubTextColor,
                         active = isPowerOn,
                         onDecrementClick = airController::decreaseTemp,
                         onIncrementClick = airController::increaseTemp
@@ -250,7 +250,7 @@ private fun AirControlAppWidgetContent(
                 }
                 Row(
                     modifier = GlanceModifier
-                        .padding(top = 18.dp, start = 30.dp, end = 30.dp)
+                        .padding(top = 12.dp, start = 30.dp, end = 30.dp)
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -263,6 +263,7 @@ private fun AirControlAppWidgetContent(
                         active = true,
                         activeIcon = R.drawable.ic_relation_air_app,
                         onClick = { ActivityLaunch.openSelfApp() },
+                        titleColor = globalConfig.airAppWidgetSubTextColor,
                     )
                     Spacer(GlanceModifier.defaultWeight())
                     ImageButton(
@@ -281,6 +282,7 @@ private fun AirControlAppWidgetContent(
                         active = isPowerOn && isFrontDefrost,
                         onClick = airController::toggleFrontDefrost,
                         activeIcon = R.drawable.ic_air_front_defrost,
+                        titleColor = globalConfig.airAppWidgetSubTextColor,
                     )
                     Spacer(GlanceModifier.defaultWeight())
                     ImageButton(
@@ -304,6 +306,7 @@ private fun AirControlAppWidgetContent(
                             else -> R.drawable.ic_air_mode_auto_cycle
                         },
                         activeIcon = R.drawable.ic_air_mode_in_cycle,
+                        titleColor = globalConfig.airAppWidgetSubTextColor,
                     )
                     val isDirAvailable = (isPowerOn &&
                             (airController.getBlowUp() == 1 ||
@@ -337,6 +340,7 @@ private fun AirControlAppWidgetContent(
                             else -> R.drawable.ic_air_dir_frost
                         },
                         inactiveIcon = R.drawable.ic_air_dir_frost,
+                        titleColor = globalConfig.airAppWidgetSubTextColor,
                     )
                 }
             }
@@ -350,6 +354,7 @@ private fun AirControlAppWidgetContent(
 private fun ControlAdjustView(
     modifier: GlanceModifier = GlanceModifier,
     title: String,
+    titleColor: Color = DHCarInfoTheme.subText,
     active: Boolean = false,
     onDecrementClick: () -> Unit = {},
     onIncrementClick: () -> Unit = {}
@@ -362,7 +367,7 @@ private fun ControlAdjustView(
             text = title,
             style = TextStyle(
                 fontSize = 13.sp,
-                color = FixedColorProvider(DHCarInfoTheme.subText)
+                color = FixedColorProvider(titleColor)
             )
         )
         Row(
@@ -398,6 +403,7 @@ private fun ImageButton(
     modifier: GlanceModifier = GlanceModifier,
     margin: PaddingValues? = null,
     title: String? = null,
+    titleColor: Color = DHCarInfoTheme.subText,
     active: Boolean,
     useColorTint: Boolean = true,
     @DrawableRes activeIcon: Int,
@@ -438,10 +444,7 @@ private fun ImageButton(
             Spacer(GlanceModifier.height(3.dp))
             Text(
                 text = title,
-                style = TextStyle(
-                    fontSize = 11.sp,
-                    color = ColorProvider(DHCarInfoTheme.subText)
-                )
+                style = TextStyle(fontSize = 11.sp, color = ColorProvider(titleColor))
             )
         }
     }

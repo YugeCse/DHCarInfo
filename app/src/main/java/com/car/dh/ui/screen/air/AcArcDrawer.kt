@@ -27,6 +27,7 @@ object AcArcDrawer {
      */
     fun drawAcArc(
         globalConfig: GlobalConfig,
+        active: Boolean,
         currentTemp: Float,
         totalGears: Int,
         activeGear: Int,
@@ -68,7 +69,10 @@ object AcArcDrawer {
             textSize = tempTextSize
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
-            color = globalConfig.airAppWidgetTempTextColor.toArgb()
+            color = (when {
+                active -> globalConfig.airAppWidgetTempTextColor
+                else -> globalConfig.airAppWidgetSubTextColor
+            }).toArgb()
         }
 
         // 2. 计算圆弧边界 (留出 padding 和文字空间)
@@ -113,7 +117,7 @@ object AcArcDrawer {
             val currentGearPaint = Paint(arcPaint).apply {
                 strokeWidth = arcStrokeWidth * 0.5f
                 color = (when {
-                    i <= activeGear ->
+                    i < activeGear ->
                         globalConfig.airAppWidgetMarkOvalSelectColor
 
                     else -> globalConfig.airAppWidgetMarkOvalColor
