@@ -91,7 +91,7 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
             if (currentSize.width < 60.dp) {
                 var maxSize = max(currentSize.width, currentSize.height)
                 if (maxSize < 350.dp) maxSize = 350.dp
-                currentSize = DpSize(maxSize, maxSize + 20.dp)
+                currentSize = DpSize(maxSize, maxSize + 30.dp)
             }
             AirControlAppWidgetContent(widgetSize = currentSize)
         }
@@ -286,9 +286,8 @@ private fun AirControlAppWidgetContent(
                         modifier = GlanceModifier
                             .background(
                                 ImageProvider(
-                                    if (!isPowerOn ||
-                                        cycleMode !in arrayOf(0, 1)
-                                    ) R.drawable.bg_btn_inactive
+                                    if (cycleMode != 1)
+                                        R.drawable.bg_btn_inactive
                                     else R.drawable.bg_btn_active
                                 )
                             )
@@ -296,12 +295,9 @@ private fun AirControlAppWidgetContent(
                             .padding(8.dp),
                         title = "模式",
                         onClick = airController::toggleCycle,
-                        active = cycleMode in arrayOf(0, 1),
-                        activeIcon = when (cycleMode) {
-                            0 -> R.drawable.ic_air_mode_out_cycle
-                            else -> R.drawable.ic_air_mode_in_cycle
-                        },
-                        inactiveIcon = R.drawable.ic_air_mode_auto_cycle,
+                        active = cycleMode == 1,
+                        activeIcon = R.drawable.ic_air_mode_in_cycle,
+                        inactiveIcon = R.drawable.ic_air_mode_out_cycle,
                         titleColor = globalConfig.airAppWidgetSubTextColor,
                     )
                     val isDirAvailable = (isPowerOn &&

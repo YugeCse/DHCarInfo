@@ -40,17 +40,11 @@ data class CarBaseControlUiState(
 
 class CarBaseControlViewModel : ViewModel() {
 
-    private val globalConfig by lazy {
-        GlobalConfig.singleton()
-    }
+    private val globalConfig by lazy { GlobalConfig.singleton() }
 
-    private val carBaseController by lazy {
-        CarBaseController.singleton()
-    }
+    private val carBaseController by lazy { CarBaseController.singleton() }
 
-    private val _uiState by lazy {
-        MutableStateFlow(CarBaseControlUiState())
-    }
+    private val _uiState by lazy { MutableStateFlow(CarBaseControlUiState()) }
 
     val uiState: StateFlow<CarBaseControlUiState> = _uiState.asStateFlow()
 
@@ -89,6 +83,7 @@ class CarBaseControlViewModel : ViewModel() {
     fun setSysLanguageValue(value: Int) {
         globalConfig.carSystemLanguage = value
         carBaseController.setLanguage(value)
+        applyNewUiState { it.copy(carLanguageValue = value) }
     }
 
     /**
@@ -98,13 +93,15 @@ class CarBaseControlViewModel : ViewModel() {
     fun setDriveMode(value: Int) {
         globalConfig.carDriveMode = value
         carBaseController.setDriveMode(value)
+        applyNewUiState { it.copy(driveModeValue = value) }
     }
 
     /** 切换迎宾灯是否开启 **/
     fun toggleWelcomeLightingEnable() {
-        carBaseController.setWelcomeLightingEnabled(
+        val value =
             !carBaseController.isWelcomeLightingEnabled()
-        )
+        carBaseController.setWelcomeLightingEnabled(value)
+        applyNewUiState { it.copy(isWelcomeLightingEnabled = value) }
     }
 
     /**
@@ -113,6 +110,7 @@ class CarBaseControlViewModel : ViewModel() {
      */
     fun setHomeDelayForLighting(value: Int) {
         carBaseController.setHomeDelay(value)
+        applyNewUiState { it.copy(homeLightDelayTimeValue = value) }
     }
 
     /**
@@ -121,20 +119,22 @@ class CarBaseControlViewModel : ViewModel() {
      */
     fun setRunAutoLock(value: Int) {
         carBaseController.setRunAutoLock(value)
+        applyNewUiState { it.copy(autoLockValue = value) }
     }
 
     /** 设置切换停车解锁 **/
     fun toggleParkUnlockEnabled() {
-        carBaseController.setParkUnlockEnabled(
-            !carBaseController.isParkUnlockEnabled()
-        )
+        val value = !carBaseController.isParkUnlockEnabled()
+        carBaseController.setParkUnlockEnabled(value)
+        applyNewUiState { it.copy(isParkUnlocked = value) }
     }
 
     /** 设置锁车自动闭窗 **/
     fun toggleLockAutoCloseWindowEnabled() {
-        carBaseController.setLockAutoCloseWindowEnabled(
+        val value =
             !carBaseController.isLockAutoCloseWindowEnabled()
-        )
+        carBaseController.setLockAutoCloseWindowEnabled(value)
+        applyNewUiState { it.copy(isParkUnlocked = value) }
     }
 
     /**
@@ -143,32 +143,36 @@ class CarBaseControlViewModel : ViewModel() {
      */
     fun setFindCarIndicator(value: Int) {
         carBaseController.setFindCarIndicator(value)
+        applyNewUiState { it.copy(findCarIndicatorValue = value) }
     }
 
     /** 切换主动座舱清洁开关 **/
     fun toggleActiveCabinCleanEnabled() {
-        carBaseController.setActiveCabinCleanEnabled(
+        val value =
             !carBaseController.isActiveCabinCleanEnabled()
-        )
+        carBaseController.setActiveCabinCleanEnabled(value)
+        applyNewUiState { it.copy(isActiveCabinCleanEnabled = value) }
     }
 
     /** 切换空调自干燥开关 **/
     fun toggleAirAutoDryEnabled() {
-        carBaseController.setAirAutoDryEnabled(
-            !carBaseController.isAirAutoDryEnabled()
-        )
+        val value = !carBaseController.isAirAutoDryEnabled()
+        carBaseController.setAirAutoDryEnabled(value)
+        applyNewUiState { it.copy(isAirAutoDryEnabled = value) }
     }
 
     /** 切换定时通风开关 **/
     fun toggleRegularVentilationEnabled() {
-        carBaseController.setRegularVentilationEnabled(
-            !carBaseController.isRegularVentilationEnabled()
-        )
+        val value = !carBaseController.isRegularVentilationEnabled()
+        carBaseController.setRegularVentilationEnabled(value)
+        applyNewUiState { it.copy(isRegularVentilationEnabled = value) }
     }
 
     /** 切换同步原车车机系统时间 **/
     fun toggleSyncOriginalCarTime() {
-        carBaseController.setTimeSyncEnabled(!carBaseController.isTimeSyncEnabled())
+        val value = !carBaseController.isTimeSyncEnabled()
+        carBaseController.setTimeSyncEnabled(value)
+        applyNewUiState { it.copy(isTimeSyncOriginalCarEnabled = value) }
     }
 
     /** 胎压监测系统校准 **/
