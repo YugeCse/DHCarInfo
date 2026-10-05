@@ -126,7 +126,7 @@ object AcArcDrawer {
             canvas.drawLine(x1, y1, x2, y2, currentGearPaint)
 
             // 绘制档位数字 (在刻度线外侧)
-            val textRadius = radius + 25f
+            val textRadius = radius + 22f
             val textX = centerX + (textRadius * cos(rad)).toFloat()
             val textY = centerY + (textRadius * sin(rad)).toFloat() + 8f // 8f 用于垂直居中微调
             val newTextPaint = gearPaint.apply {
