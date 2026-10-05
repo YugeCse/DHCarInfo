@@ -1,10 +1,8 @@
 package com.car.dh.ui.screen.base
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,13 +19,13 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,212 +36,140 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.car.dh.R
-import com.car.dh.app.GlobalConfig
-import com.car.dh.app.LocalGlobalConfig
-import com.car.dh.ui.screen.air.AirStateDataChange
 import com.car.dh.ui.theme.DHCarInfoTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun CarBaseControlScreen(modifier: Modifier = Modifier) {
-    val dataVersion = AirStateDataChange
+    val viewModel = viewModel<CarBaseControlViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dataVersion = CarDataBusDataObserver
         .dataChangeFlow
         .collectAsStateWithLifecycle()
-    key(dataVersion) {
-        Column(
-            modifier = Modifier
-                .then(modifier)
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            val carBaseController = remember { CarBaseController.singleton() }
-            Text(text = "其他控制", fontSize = 14.sp, color = DHCarInfoTheme.subText)
-            val sysLanguage by when {
-                LocalInspectionMode.current ->
-                    remember { mutableIntStateOf(0) }
-
-                else -> {
-                    val globalConfig = LocalGlobalConfig.current
-                    remember { mutableIntStateOf(globalConfig.carSystemLanguage) }
-                }
-            }
-            val sysLanguages = listOf("中文", "英文", "俄语")
-            ControlItemView(
-                modifier = Modifier.padding(top = 12.dp),
-                title = "车机语言",
-                options = sysLanguages,
-                selection = sysLanguages[sysLanguage],
-                onOptionSelected = { index, _ ->
-                    val targetValue = if (index == 2) 3 else index
-                    GlobalConfig.singleton()
-                        .carSystemLanguage = targetValue
-                    carBaseController.setLanguage(targetValue)
-                }
-            )
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            val driveMode by when {
-                LocalInspectionMode.current ->
-                    remember { mutableStateOf("经济") }
-
-                else -> {
-                    val mode = GlobalConfig.singleton()
-                        .carDriveMode
-                        .coerceIn(0, 2)
-                    remember(mode) {
-                        mutableStateOf(
-                            when (mode) {
-                                1 -> "经济"
-                                2 -> "运动"
-                                else -> "舒适"
-                            }
-                        )
-                    }
-                }
-            }
-            val driveModeTexts = listOf("舒适", "经济", "运动")
-            ControlItemView(
-                title = "驾驶模式",
-                selection = driveMode,
-                options = driveModeTexts,
-                onOptionSelected = { index, _ ->
-                    GlobalConfig.singleton()
-                        .carDriveMode = index
-                    carBaseController.setDriveMode(index)
-                }
-            )
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isWelcomeLightingEnabled by remember {
-                mutableStateOf(carBaseController.isWelcomeLightingEnabled())
-            }
-            ControlItemView(
-                title = "迎宾照明",
-                value = if (isWelcomeLightingEnabled) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setWelcomeLightingEnabled(!isWelcomeLightingEnabled)
-                isWelcomeLightingEnabled = !isWelcomeLightingEnabled
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            val homeDelaySecTexts = listOf("30s", "60s", "90s")
-            var homeDelayIndex by remember {
-                mutableIntStateOf(carBaseController.getHomeDelay())
-            }
-            ControlItemView(
-                title = "伴我回家持续时间",
-                options = homeDelaySecTexts,
-                selection = "${homeDelaySecTexts[homeDelayIndex]}s",
-                onOptionSelected = { index, _ ->
-                    homeDelayIndex = index
-                    carBaseController.setHomeDelay(index)
-                }
-            )
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var autoLockValue by remember {
-                mutableIntStateOf(carBaseController.getRunAutoLock())
-            }
-            val autoLockValues = listOf("关闭", "10km/h", "20km/h")
-            ControlItemView(
-                title = "行车自动落锁",
-                options = autoLockValues,
-                selection = autoLockValues[autoLockValue],
-                onOptionSelected = { index, _ ->
-                    autoLockValue = index
-                    carBaseController.setRunAutoLock(index)
-                }
-            )
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isParkUnlocked by remember {
-                mutableStateOf(carBaseController.isParkUnlockEnabled())
-            }
-            ControlItemView(
-                title = "停车解锁",
-                value = if (!isParkUnlocked) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setParkUnlockEnabled(!isParkUnlocked)
-                isParkUnlocked = !isParkUnlocked
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isLockAutoCloseWindow by remember {
-                mutableStateOf(carBaseController.isLockAutoCloseWindowEnabled())
-            }
-            ControlItemView(
-                title = "闭锁车门自动关窗",
-                value = if (!isLockAutoCloseWindow) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setLockAutoCloseWindowEnabled(!isLockAutoCloseWindow)
-                isLockAutoCloseWindow = !isLockAutoCloseWindow
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            val findCarTags = listOf("仅灯光", "灯&声")
-            var findCarTagIndex by remember {
-                mutableIntStateOf(carBaseController.getFindCarIndicator())
-            }
-            ControlItemView(
-                title = "寻车指示",
-                selection = findCarTags[findCarTagIndex],
-                options = findCarTags,
-                onOptionSelected = { index, _ ->
-                    findCarTagIndex = index
-                    carBaseController.setFindCarIndicator(index)
-                }
-            )
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isActiveCabinCleanEnabled by remember {
-                mutableStateOf(carBaseController.isActiveCabinCleanEnabled())
-            }
-            ControlItemView(
-                title = "主动座舱清洁",
-                value = if (isActiveCabinCleanEnabled) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setActiveCabinCleanEnabled(!isActiveCabinCleanEnabled)
-                isActiveCabinCleanEnabled = !isActiveCabinCleanEnabled
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isAirAutoDryEnabled by remember {
-                mutableStateOf(carBaseController.isAirAutoDryEnabled())
-            }
-            ControlItemView(
-                title = "空调自干燥",
-                value = if (isAirAutoDryEnabled) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setAirAutoDryEnabled(!isAirAutoDryEnabled)
-                isAirAutoDryEnabled = !isAirAutoDryEnabled
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isRegularVentilationEnabled by remember {
-                mutableStateOf(carBaseController.isRegularVentilationEnabled())
-            }
-            ControlItemView(
-                title = "定时通风",
-                value = if (!isRegularVentilationEnabled) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setRegularVentilationEnabled(!isRegularVentilationEnabled)
-                isRegularVentilationEnabled = !isRegularVentilationEnabled
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            var isTimeSyncEnabled by remember {
-                mutableStateOf(carBaseController.isTimeSyncEnabled())
-            }
-            ControlItemView(
-                title = "原车时间同步",
-                value = if (isTimeSyncEnabled) "启用" else "不使用"
-            ) {
-                carBaseController
-                    .setTimeSyncEnabled(!isTimeSyncEnabled)
-                isTimeSyncEnabled = !isTimeSyncEnabled
-            }
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
-            ControlItemView(
-                title = "胎压监测系统校准",
-                onClick = { carBaseController.calibrateTirePressure() })
-            HorizontalDivider(color = DHCarInfoTheme.inactive)
+    LaunchedEffect(dataVersion) {
+        while (isActive) {
+            delay(500.milliseconds)
+            viewModel.syncCarBaseData()
         }
+    }
+    Column(
+        modifier = Modifier
+            .then(modifier)
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = "其他控制",
+            fontSize = 14.sp,
+            color = DHCarInfoTheme.subText
+        )
+        val sysLanguage by when {
+            LocalInspectionMode.current ->
+                remember { mutableIntStateOf(0) }
+
+            else -> remember { derivedStateOf { uiState.carLanguageValue } }
+        }
+        val sysLanguages = listOf("中文", "英文", "俄语")
+        ControlItemView(
+            modifier = Modifier.padding(top = 12.dp),
+            title = "车机语言",
+            options = sysLanguages,
+            selection = sysLanguages[sysLanguage],
+            onOptionSelected = { index, _ ->
+                val targetValue = if (index == 2) 3 else index
+                viewModel.setSysLanguageValue(targetValue)
+            }
+        )
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        val driveMode by when {
+            LocalInspectionMode.current ->
+                remember { mutableStateOf("经济") }
+
+            else -> {
+                val mode = uiState.driveModeValue.coerceIn(0, 2)
+                remember(mode) {
+                    mutableStateOf(if (mode == 1) "经济" else if (mode == 2) "运动" else "舒适")
+                }
+            }
+        }
+        val driveModeTexts = listOf("舒适", "经济", "运动")
+        ControlItemView(
+            title = "驾驶模式",
+            selection = driveMode,
+            options = driveModeTexts,
+            onOptionSelected = { index, _ -> viewModel.setDriveMode(index) }
+        )
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "迎宾照明",
+            value = if (uiState.isWelcomeLightingEnabled) "启用" else "不使用"
+        ) {
+            viewModel.toggleWelcomeLightingEnable()
+        }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        val homeDelaySecTexts = listOf("30s", "60s", "90s")
+        ControlItemView(
+            title = "伴我回家持续时间",
+            options = homeDelaySecTexts,
+            selection = "${homeDelaySecTexts[uiState.homeLightDelayTimeValue]}s",
+            onOptionSelected = { index, _ -> viewModel.setHomeDelayForLighting(index) }
+        )
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        val autoLockValues = listOf("关闭", "10km/h", "20km/h")
+        ControlItemView(
+            title = "行车自动落锁",
+            options = autoLockValues,
+            selection = autoLockValues[uiState.autoLockValue],
+            onOptionSelected = { index, _ -> viewModel.setRunAutoLock(index) }
+        )
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "停车解锁",
+            value = if (!uiState.isParkUnlocked) "启用" else "不使用"
+        ) { viewModel.toggleParkUnlockEnabled() }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "闭锁车门自动关窗",
+            value = if (!uiState.isLockAutoCloseWindow) "启用" else "不使用"
+        ) { viewModel.toggleLockAutoCloseWindowEnabled() }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        val findCarTags = listOf("仅灯光", "灯&声")
+        ControlItemView(
+            title = "寻车指示",
+            selection = findCarTags[uiState.findCarIndicatorValue],
+            options = findCarTags,
+            onOptionSelected = { index, _ -> viewModel.setFindCarIndicator(index) }
+        )
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "主动座舱清洁",
+            value = if (uiState.isActiveCabinCleanEnabled) "启用" else "不使用"
+        ) { viewModel.toggleActiveCabinCleanEnabled() }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "空调自干燥",
+            value = if (uiState.isAirAutoDryEnabled) "启用" else "不使用"
+        ) { viewModel.toggleAirAutoDryEnabled() }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "定时通风",
+            value = if (!uiState.isRegularVentilationEnabled) "启用" else "不使用"
+        ) { viewModel.toggleRegularVentilationEnabled() }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "原车时间同步",
+            value = if (uiState.isTimeSyncOriginalCarEnabled) "启用" else "不使用"
+        ) { viewModel.toggleSyncOriginalCarTime() }
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(
+            title = "胎压监测系统校准",
+            onClick = { viewModel.calibrateTirePressure() })
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
     }
 }
 

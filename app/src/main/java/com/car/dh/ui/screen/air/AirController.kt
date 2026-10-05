@@ -1,6 +1,7 @@
 package com.car.dh.ui.screen.air
 
 import com.car.dh.canbus.data.DataCanbus
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -106,7 +107,7 @@ class AirController private constructor(
         launch {
             delay(500.milliseconds)
             AirControlAppWidget.updateAll()
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         } //发送更新小组件的方法
     }
 

@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
@@ -34,7 +33,6 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
@@ -53,15 +51,14 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.glance.unit.FixedColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
-import com.car.dh.app.GlobalConfig
 import com.car.dh.app.LocalGlobalConfig
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.ActivityLaunch
 
@@ -93,8 +90,8 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
             var currentSize = LocalSize.current
             if (currentSize.width < 60.dp) {
                 var maxSize = max(currentSize.width, currentSize.height)
-                if (maxSize < 360.dp) maxSize = 360.dp
-                currentSize = DpSize(maxSize, maxSize + 30.dp)
+                if (maxSize < 350.dp) maxSize = 350.dp
+                currentSize = DpSize(maxSize, maxSize + 20.dp)
             }
             AirControlAppWidgetContent(widgetSize = currentSize)
         }
@@ -107,7 +104,7 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
 private fun AirControlAppWidgetContent(
     widgetSize: DpSize = DpSize(400.dp, 300.dp)
 ) {
-    val dataVersion by AirStateDataChange
+    val dataVersion by CarDataBusDataObserver
         .dataChangeFlow
         .collectAsState(0L)
     key(dataVersion) {
@@ -299,13 +296,12 @@ private fun AirControlAppWidgetContent(
                             .padding(8.dp),
                         title = "模式",
                         onClick = airController::toggleCycle,
-                        active = isPowerOn &&
-                                cycleMode in arrayOf(0, 1),
-                        inactiveIcon = when (cycleMode) {
+                        active = cycleMode in arrayOf(0, 1),
+                        activeIcon = when (cycleMode) {
                             0 -> R.drawable.ic_air_mode_out_cycle
-                            else -> R.drawable.ic_air_mode_auto_cycle
+                            else -> R.drawable.ic_air_mode_in_cycle
                         },
-                        activeIcon = R.drawable.ic_air_mode_in_cycle,
+                        inactiveIcon = R.drawable.ic_air_mode_auto_cycle,
                         titleColor = globalConfig.airAppWidgetSubTextColor,
                     )
                     val isDirAvailable = (isPowerOn &&

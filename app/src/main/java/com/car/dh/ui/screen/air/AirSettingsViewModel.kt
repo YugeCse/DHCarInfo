@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import com.car.dh.app.GlobalConfig
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.theme.DHCarInfoTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -75,7 +76,7 @@ class AirSettingsViewModel : ViewModel() {
             useAppWidgetBackground = value
         )
         globalConfig.isAirAppWidgetRenderBackground = value
-        AirStateDataChange.notifyDataChanged() //通知数据变更处理
+        CarDataBusDataObserver.notifyDataChanged() //通知数据变更处理
     }
 
     /**

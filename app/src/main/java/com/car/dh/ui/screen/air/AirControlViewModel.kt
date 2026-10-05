@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.car.dh.data.AirControlStateInfo
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,7 +56,7 @@ class AirControlViewModel : ViewModel() {
         )
         viewModelScope.launch {
             AirControlAppWidget.updateAll()
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
     }
 

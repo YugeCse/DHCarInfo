@@ -2,9 +2,7 @@ package com.car.dh.app
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.core.graphics.toColor
-import androidx.core.graphics.toColorLong
-import com.car.dh.ui.screen.air.AirStateDataChange
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.PrefsUtils
 import com.car.dh.utils.toColor
@@ -40,7 +38,7 @@ class GlobalConfig private constructor() {
     var isAirAppWidgetRenderBackground: Boolean
         set(value) {
             prefs.put("isAirAppWidgetRenderBackground", value)
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() = prefs.getBoolean("isAirAppWidgetRenderBackground", false)
 
@@ -48,7 +46,7 @@ class GlobalConfig private constructor() {
     var airAppWidgetMarkNumberColor: Color
         set(value) {
             prefs.put("airAppWidgetMarkNumberColor", value.toHexCode())
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() {
             val hexCode = prefs.getString(
@@ -62,7 +60,7 @@ class GlobalConfig private constructor() {
     var airAppWidgetMarkNumberSelectColor: Color
         set(value) {
             prefs.put("airAppWidgetMarkNumberSelectColor", value.toHexCode())
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() {
             val hexCode = prefs.getString(
@@ -76,7 +74,7 @@ class GlobalConfig private constructor() {
     var airAppWidgetMarkOvalColor: Color
         set(value) {
             prefs.put("airAppWidgetMarkOvalColor", value.toHexCode())
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() {
             val hexCode = prefs.getString(
@@ -90,7 +88,7 @@ class GlobalConfig private constructor() {
     var airAppWidgetMarkOvalSelectColor: Color
         set(value) {
             prefs.put("airAppWidgetMarkOvalSelectColor", value.toHexCode())
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() {
             val hexCode = prefs.getString(
@@ -104,7 +102,7 @@ class GlobalConfig private constructor() {
     var airAppWidgetTempTextColor: Color
         set(value) {
             prefs.put("airAppWidgetTempTextColor", value.toHexCode())
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() = prefs.getString(
             "airAppWidgetTempTextColor",
@@ -115,7 +113,7 @@ class GlobalConfig private constructor() {
     var airAppWidgetSubTextColor: Color
         set(value) {
             prefs.put("airAppWidgetSubTextColor", value.toHexCode())
-            AirStateDataChange.notifyDataChanged()
+            CarDataBusDataObserver.notifyDataChanged()
         }
         get() = prefs.getString(
             "airAppWidgetSubTextColor",

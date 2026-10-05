@@ -1,11 +1,11 @@
-package com.car.dh.ui.screen.air
+package com.car.dh.ui.screen.base
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** 空调数据变化通知类 **/
-object AirStateDataChange {
+/** CarBus数据变化通知类 **/
+object CarDataBusDataObserver {
 
     private val _dataChangeFlow = MutableStateFlow(0L)
 

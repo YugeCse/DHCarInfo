@@ -5,6 +5,7 @@ import com.car.dh.canbus.data.DataCanbus
 import com.car.dh.canbus.handler.HandlerCanbus
 import com.car.dh.canbus.callback.ModuleCallbackCanbusProxy
 import com.car.dh.canbus.ipc.IModuleCallback
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -54,7 +55,7 @@ class CallbackCanbus : CallbackCanbusBase(),
         // if (updateCode >= 0 && updateCode < 98) {
         HandlerCanbus.update(updateCode, ints)
         launch { AirControlAppWidget.updateAll() }
-        AirStateDataChange.notifyDataChanged()
+        CarDataBusDataObserver.notifyDataChanged()
         // }
     }
 }
