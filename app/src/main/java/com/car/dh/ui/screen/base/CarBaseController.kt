@@ -314,26 +314,32 @@ class CarBaseController private constructor() {
 
     /** 离开自动落锁：更新码 177，功能码 32 */
     fun isLeaveAutoLockEnabled(): Boolean = getBoolean(UPDATE_LEAVE_AUTO_LOCK)
+
     fun setLeaveAutoLockEnabled(enabled: Boolean) =
         sendCmd(CMD_SET, FUNC_LEAVE_AUTO_LOCK, if (enabled) 1 else 0)
 
     /** 闭锁车门自动关窗：更新码 178，功能码 8 */
-    fun isLockAutoCloseWindowEnabled(): Boolean = getBoolean(UPDATE_LOCK_AUTO_CLOSE_WINDOW)
+    fun isLockAutoCloseWindowEnabled(): Boolean =
+        !getBoolean(UPDATE_LOCK_AUTO_CLOSE_WINDOW)
+
     fun setLockAutoCloseWindowEnabled(enabled: Boolean) =
         sendCmd(CMD_SET, FUNC_CLOSE_WINDOW, if (enabled) 1 else 0)
 
     /** 闭锁车门自动关窗（多档）：更新码 156，功能码 8，值 0=锁车自动关窗，1=长按钥匙自动关窗，2=关闭 */
     fun getAutoCloseWindowMode(): Int = getInt(UPDATE_AUTO_CLOSE_WINDOW)
+
     fun setAutoCloseWindowMode(mode: Int) = sendCmd(CMD_SET, FUNC_CLOSE_WINDOW, mode)
 
     // ==================== 灯光 / 迎宾 ====================
     /** 日间行车灯：更新码 167，功能码 10 */
     fun isDaytimeRunningLightEnabled(): Boolean = getBoolean(UPDATE_DAYTIME_RUNNING_LIGHT)
+
     fun setDaytimeRunningLightEnabled(enabled: Boolean) =
         sendCmd(CMD_SET, FUNC_DAYTIME_LIGHT, if (enabled) 1 else 0)
 
     /** 迎宾照明：更新码 192，功能码 47 */
     fun isWelcomeLightingEnabled(): Boolean = getBoolean(UPDATE_WELCOME_LIGHTING)
+
     fun setWelcomeLightingEnabled(enabled: Boolean) =
         sendCmd(CMD_SET, FUNC_WELCOME_LIGHTING, if (enabled) 1 else 0)
 

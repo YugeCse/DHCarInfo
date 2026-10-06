@@ -24,13 +24,14 @@ public class ConnectionMain implements ConnectionObserver {
             DataMain.PROXY.setRemoteModule(toolkit.getRemoteModule(0));
         } catch (RemoteException e) {
             e.printStackTrace();
+        } finally {
+            GlobalConfig.initConfigs(); //调用初始化配置，让一些无法获得参数的数据可以自动配置
         }
         ModuleCallbackMain callback = ModuleCallbackMain.getInstance();
         DataMain.PROXY.register(callback, 0, 1);
         DataMain.PROXY.register(callback, 12, 1);
         DataMain.PROXY.register(callback, 4, 1);
         DataMain.PROXY.register(callback, 174, 1);
-        GlobalConfig.initConfigs(); //调用初始化配置，让一些无法获得参数的数据可以自动配置
     }
 
     @Override // com.syu.module.ConnectionObserver
