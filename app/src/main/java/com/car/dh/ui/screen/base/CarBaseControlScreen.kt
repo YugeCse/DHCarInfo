@@ -17,6 +17,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -107,10 +108,8 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "迎宾照明",
-            value = if (uiState.isWelcomeLightingEnabled) "启用" else "不使用"
-        ) {
-            viewModel.toggleWelcomeLightingEnable()
-        }
+            value = uiState.isWelcomeLightingEnabled
+        ) { viewModel.toggleWelcomeLightingEnable() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         val homeDelaySecTexts = listOf("30s", "60s", "90s")
         ControlItemView(
@@ -130,46 +129,73 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "停车解锁",
-            value = if (!uiState.isParkUnlocked) "启用" else "不使用"
+            value = uiState.isParkUnlocked
         ) { viewModel.toggleParkUnlockEnabled() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "闭锁车门自动关窗",
-            value = if (!uiState.isLockAutoCloseWindow) "启用" else "不使用"
+            value = uiState.isLockAutoCloseWindow
         ) { viewModel.toggleLockAutoCloseWindowEnabled() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
-        val findCarTags = listOf("仅灯光", "灯&声")
+        val findCarTags = listOf(" 灯&声 ", "仅灯光")
         ControlItemView(
             title = "寻车指示",
-            selection = findCarTags[uiState.findCarIndicatorValue],
             options = findCarTags,
+            selection = findCarTags[uiState.findCarIndicatorValue],
             onOptionSelected = { index, _ -> viewModel.setFindCarIndicator(index) }
         )
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "主动座舱清洁",
-            value = if (uiState.isActiveCabinCleanEnabled) "启用" else "不使用"
+            value = uiState.isActiveCabinCleanEnabled
         ) { viewModel.toggleActiveCabinCleanEnabled() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "空调自干燥",
-            value = if (uiState.isAirAutoDryEnabled) "启用" else "不使用"
+            value = uiState.isAirAutoDryEnabled
         ) { viewModel.toggleAirAutoDryEnabled() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "定时通风",
-            value = if (!uiState.isRegularVentilationEnabled) "启用" else "不使用"
+            value = uiState.isRegularVentilationEnabled
         ) { viewModel.toggleRegularVentilationEnabled() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "原车时间同步",
-            value = if (uiState.isTimeSyncOriginalCarEnabled) "启用" else "不使用"
+            value = uiState.isTimeSyncOriginalCarEnabled
         ) { viewModel.toggleSyncOriginalCarTime() }
         HorizontalDivider(color = DHCarInfoTheme.inactive)
         ControlItemView(
             title = "胎压监测系统校准",
             onClick = { viewModel.calibrateTirePressure() })
         HorizontalDivider(color = DHCarInfoTheme.inactive)
+    }
+}
+
+@Composable
+private fun ControlItemView(
+    modifier: Modifier = Modifier,
+    title: String,
+    value: Boolean,
+    onValueChanged: (Boolean) -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .then(modifier)
+            .clip(RoundedCornerShape(12.dp))
+            .fillMaxWidth()
+            .height(50.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = title, fontSize = 16.sp, color = DHCarInfoTheme.text)
+        Spacer(Modifier.weight(1f))
+        Switch(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .height(20.dp),
+            checked = value,
+            onCheckedChange = onValueChanged
+        )
     }
 }
 
@@ -244,6 +270,20 @@ private fun ControlItemView(
                 }
             }
         }
+    }
+}
+
+@Composable
+@Preview(name = "预览")
+private fun ControlItemViewPreview() = DHCarInfoTheme {
+    Column(Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 20.dp)) {
+        ControlItemView(title = "打开天窗", value = true)
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(title = "打开天窗", value = "好的")
+        HorizontalDivider(color = DHCarInfoTheme.inactive)
+        ControlItemView(title = "车机语言", selection = "中文", options = listOf("中文", "英语"))
     }
 }
 

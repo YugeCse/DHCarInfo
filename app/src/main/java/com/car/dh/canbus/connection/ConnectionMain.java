@@ -2,6 +2,7 @@ package com.car.dh.canbus.connection;
 
 import android.os.RemoteException;
 
+import com.car.dh.app.GlobalConfig;
 import com.car.dh.canbus.main.DataMain;
 import com.car.dh.canbus.main.ModuleCallbackMain;
 import com.car.dh.canbus.ipc.IRemoteToolkit;
@@ -29,6 +30,7 @@ public class ConnectionMain implements ConnectionObserver {
         DataMain.PROXY.register(callback, 12, 1);
         DataMain.PROXY.register(callback, 4, 1);
         DataMain.PROXY.register(callback, 174, 1);
+        GlobalConfig.initConfigs(); //调用初始化配置，让一些无法获得参数的数据可以自动配置
     }
 
     @Override // com.syu.module.ConnectionObserver

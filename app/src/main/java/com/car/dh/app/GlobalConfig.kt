@@ -2,6 +2,7 @@ package com.car.dh.app
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import com.car.dh.ui.screen.base.CarBaseController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.PrefsUtils
@@ -17,6 +18,18 @@ class GlobalConfig private constructor() {
 
         @JvmStatic
         fun singleton(): GlobalConfig = _instance
+
+        /** 初始化配置数据 **/
+        @JvmStatic
+        fun initConfigs() {
+            try {
+                val carBaseController = CarBaseController.singleton()
+                carBaseController.setLanguage(_instance.carSystemLanguage)
+                carBaseController.setDriveMode2(_instance.carDriveMode)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
     }
 

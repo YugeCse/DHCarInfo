@@ -117,19 +117,13 @@ class MainActivity : ComponentActivity() {
     private fun handleAliasIntent(intent: Intent, onLaunched: () -> Unit = {}) {
         val component = intent.component ?: return
         val className = component.className
-        if (className.endsWith("MainActivityDefault")) {
-            try {
-                val globalConfig = GlobalConfig.singleton()
-                val carBaseController = CarBaseController.singleton()
-                carBaseController.setLanguage(globalConfig.carSystemLanguage)
-                carBaseController.setDriveMode2(globalConfig.carDriveMode)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
+        when {
+            className.endsWith("MainActivityDefault") -> {
+                GlobalConfig.initConfigs() //初始化配置数据
                 finish() //关掉当前页面
             }
-        } else if (className.endsWith("MainActivityDefault2")) {
-            onLaunched()
+
+            className.endsWith("MainActivityDefault2") -> onLaunched()
         }
     }
 
