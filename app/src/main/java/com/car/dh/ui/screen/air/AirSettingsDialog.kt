@@ -163,7 +163,7 @@ private fun AirSettingsDialogView(
                 targetColor = settings.airAppWidgetMarkOvalColor
             ) { onChangeAirAppWidgetMarkOvalColor(it.toColor()) }
             ColorPickItemView(
-                title = "刻度线颜色",
+                title = "刻度线选中颜色",
                 targetColor = settings.airAppWidgetMarkOvalSelectColor
             ) { onChangeAirAppWidgetMarkOvalSelectColor(it.toColor()) }
             ColorPickItemView(

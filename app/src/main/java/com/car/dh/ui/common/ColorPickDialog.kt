@@ -30,6 +30,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.toHexCode
 import com.github.skydoves.colorpicker.compose.AlphaSlider
+import com.github.skydoves.colorpicker.compose.BrightnessSlider
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.HueSlider
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
@@ -71,11 +72,11 @@ private fun ColorPickDialogView(
     Box(
         Modifier
             .clip(RoundedCornerShape(12.dp))
-            .sizeIn(maxWidth = if (!isLandscape) 460.dp else 600.dp)
+            .sizeIn(maxWidth = if (!isLandscape) 500.dp else 800.dp)
             .run {
                 if (!LocalInspectionMode.current)
                     fillMaxWidth(0.9f)
-                else defaultMinSize(minWidth = if (!isLandscape) 460.dp else 520.dp)
+                else defaultMinSize(minWidth = if (!isLandscape) 500.dp else 700.dp)
             },
         Alignment.Center
     ) {
@@ -103,6 +104,14 @@ private fun ColorPickDialogView(
                     }
                 )
                 Column(Modifier.padding(top = 20.dp)) {
+                    BrightnessSlider(
+                        modifier = Modifier
+                            .padding(top = 20.dp)
+                            .fillMaxWidth()
+                            .height(16.dp),
+                        initialColor = initialColor,
+                        controller = colorPickerController
+                    )
                     HueSlider(
                         modifier = Modifier
                             .padding(top = 20.dp)
