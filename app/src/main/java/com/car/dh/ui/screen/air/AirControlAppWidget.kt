@@ -2,6 +2,7 @@ package com.car.dh.ui.screen.air
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -61,11 +62,22 @@ import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.ActivityLaunch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** 空调控制微件BroadcastReceiver **/
 class AirControlAppWidget : GlanceAppWidgetReceiver() {
 
     override val glanceAppWidget: GlanceAppWidget = impl
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
+            CoroutineScope(Dispatchers.Default)
+                .launch { updateAll() }
+        }
+    }
 
     companion object {
 

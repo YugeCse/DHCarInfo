@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
@@ -25,12 +27,15 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.car.dh.app.GlobalConfig
+import com.car.dh.ui.screen.air.AirControlAppWidget
 import com.car.dh.ui.screen.air.AirControlScreen
-import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.screen.base.CarBaseControlScreen
-import com.car.dh.ui.screen.base.CarBaseController
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.screen.base.SkyControlScreen
 import com.car.dh.ui.theme.DHCarInfoTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
@@ -40,67 +45,72 @@ class MainActivity : ComponentActivity() {
         handleAliasIntent(intent) {
             setContent {
                 DHCarInfoTheme {
+                    SideEffect {
+                        WindowInsetsControllerCompat(window, window.decorView)
+                            .isAppearanceLightStatusBars = false
+                    }
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         containerColor = DHCarInfoTheme.bg
                     ) { innerPadding ->
-                        SideEffect {
-                            WindowInsetsControllerCompat(window, window.decorView)
-                                .isAppearanceLightStatusBars = false
-                        }
-                        val isLandscape = LocalConfiguration.current.orientation ==
-                                Configuration.ORIENTATION_LANDSCAPE
-                        if (isLandscape) {
-                            Row(
-                                Modifier
-                                    .padding(innerPadding)
-                                    .fillMaxSize()
-                            ) {
-                                AirControlScreen(modifier = Modifier.weight(1f))
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .verticalScroll(rememberScrollState()),
-                                ) {
-                                    val dataVersion = CarDataBusDataObserver
-                                        .dataChangeFlow
-                                        .collectAsStateWithLifecycle()
-                                    key(dataVersion) {
-                                        SkyControlScreen()
-                                        CarBaseControlScreen()
-                                    }
-                                }
-                            }
-                        } else {
-                            Column(
-                                Modifier
-                                    .padding(innerPadding)
-                                    .fillMaxSize()
-                                    .verticalScroll(rememberScrollState())
-                                    .padding(innerPadding)
-                            ) {
-                                val screenHeight =
-                                    LocalWindowInfo.current.containerDpSize.height
-                                AirControlScreen(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(screenHeight / 2f)
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    val dataVersion = CarDataBusDataObserver
-                                        .dataChangeFlow
-                                        .collectAsStateWithLifecycle()
-                                    key(dataVersion) {
-                                        SkyControlScreen()
-                                        CarBaseControlScreen()
-                                    }
-                                }
-                            }
-                        }
+                        ContentView(Modifier.padding(innerPadding))
+                    }
+                    LaunchedEffect(Unit) { AirControlAppWidget.updateAll() }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ContentView(modifier: Modifier = Modifier) {
+        val isLandscape = LocalConfiguration.current.orientation ==
+                Configuration.ORIENTATION_LANDSCAPE
+        if (isLandscape) {
+            Row(
+                Modifier
+                    .then(modifier)
+                    .fillMaxSize()
+            ) {
+                AirControlScreen(modifier = Modifier.weight(1f))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    val dataVersion = CarDataBusDataObserver
+                        .dataChangeFlow
+                        .collectAsStateWithLifecycle()
+                    key(dataVersion) {
+                        SkyControlScreen()
+                        CarBaseControlScreen()
+                    }
+                }
+            }
+        } else {
+            Column(
+                Modifier
+                    .then(modifier)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                val screenHeight =
+                    LocalWindowInfo.current.containerDpSize.height
+                AirControlScreen(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(screenHeight / 2f)
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val dataVersion = CarDataBusDataObserver
+                        .dataChangeFlow
+                        .collectAsStateWithLifecycle()
+                    key(dataVersion) {
+                        SkyControlScreen()
+                        CarBaseControlScreen()
                     }
                 }
             }
@@ -120,6 +130,8 @@ class MainActivity : ComponentActivity() {
         when {
             className.endsWith("MainActivityDefault") -> {
                 GlobalConfig.initConfigs() //初始化配置数据
+                CoroutineScope(Dispatchers.Default)
+                    .launch { AirControlAppWidget.updateAll() }
                 finish() //关掉当前页面
             }
 
