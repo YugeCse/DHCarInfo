@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -100,7 +101,9 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             var currentSize = LocalSize.current
-            if (currentSize.width < 60.dp) {
+            if (!LocalInspectionMode.current &&
+                currentSize.width < 60.dp
+            ) {
                 var maxSize = max(currentSize.width, currentSize.height)
                 if (maxSize < 350.dp) maxSize = 350.dp
                 currentSize = DpSize(maxSize, maxSize + 30.dp)

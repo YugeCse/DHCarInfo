@@ -43,6 +43,19 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity-alias
+            android:name=".MainActivityDefault2"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
             android:name=".MainActivityDefault"
             android:enabled="true"
             android:exported="true"
@@ -57,24 +70,11 @@
             </intent-filter>
         </activity-alias>
 
-        <activity-alias
-            android:name=".MainActivityDefault2"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
         <receiver
             android:name=".ui.screen.air.AirControlAppWidget"
             android:exported="false">
             <intent-filter>
+
                 <!-- 开机完成广播 -->
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -83,6 +83,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/air_control_app_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".ui.screen.base.CarControlAppWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/car_control_app_widget_info" />
         </receiver>
     </application>
 

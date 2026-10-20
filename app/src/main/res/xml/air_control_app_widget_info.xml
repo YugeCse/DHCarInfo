@@ -8,7 +8,7 @@
     android:previewImage="@drawable/img_air_app_widget"
     android:previewLayout="@layout/air_control_app_widget"
     android:resizeMode="horizontal|vertical"
-    android:targetCellWidth="1"
+    android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />

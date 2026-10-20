@@ -49,13 +49,13 @@ fun SkyControlScreen(modifier: Modifier = Modifier) {
                         control = SkyController::close
                     ),
                     SkyControlItemInfo(
+                        title = "停止",
+                        control = SkyController::stop
+                    ),
+                    SkyControlItemInfo(
                         title = "透气",
                         control = SkyController::freshAir
                     ),
-                    SkyControlItemInfo(
-                        title = "停止",
-                        control = SkyController::stop
-                    )
                 )
             }
             repeat(itemSource.size) { index ->
