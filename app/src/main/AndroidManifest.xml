@@ -88,6 +88,8 @@
             android:name=".ui.screen.base.CarControlAppWidget"
             android:exported="false">
             <intent-filter>
+                <!-- 开机完成广播 -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 

@@ -3,10 +3,7 @@ package com.car.dh.ui.screen.air
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,18 +17,15 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
-import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
@@ -42,7 +36,6 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
-import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
@@ -55,12 +48,12 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import androidx.glance.unit.FixedColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
 import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
+import com.car.dh.ui.screen.component.ImageButton
 import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.ActivityLaunch
 import kotlinx.coroutines.CoroutineScope
@@ -399,59 +392,6 @@ private fun ControlAdjustView(
                 useColorTint = false,
                 activeIcon = R.drawable.ic_data_increment,
                 inactiveIcon = R.drawable.ic_data_increment_inactive,
-            )
-        }
-    }
-}
-
-@Composable
-@SuppressLint("RestrictedApi")
-private fun ImageButton(
-    modifier: GlanceModifier = GlanceModifier,
-    margin: PaddingValues? = null,
-    title: String? = null,
-    titleColor: Color = DHCarInfoTheme.subText,
-    active: Boolean,
-    useColorTint: Boolean = true,
-    @DrawableRes activeIcon: Int,
-    @DrawableRes inactiveIcon: Int? = null,
-    onClick: () -> Unit
-) {
-    val layoutDirection = LayoutDirection.Ltr
-    val paddingStart =
-        margin?.calculateStartPadding(layoutDirection) ?: 0.dp
-    val paddingEnd =
-        margin?.calculateEndPadding(layoutDirection) ?: 0.dp
-    val paddingTop = margin?.calculateTopPadding() ?: 0.dp
-    val paddingBottom = margin?.calculateBottomPadding() ?: 0.dp
-    Column(
-        modifier = GlanceModifier.padding(
-            start = paddingStart,
-            end = paddingEnd,
-            top = paddingTop,
-            bottom = paddingBottom,
-        ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            modifier = GlanceModifier
-                .then(modifier)
-                .clickable { onClick() },
-            provider = ImageProvider(
-                if (active || inactiveIcon == null)
-                    activeIcon
-                else inactiveIcon
-            ),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            colorFilter = if (!useColorTint) null else ColorFilter.tint(ColorProvider(Color.White)),
-        )
-        if (!title.isNullOrEmpty()) {
-            Spacer(GlanceModifier.height(3.dp))
-            Text(
-                text = title,
-                style = TextStyle(fontSize = 11.sp, color = ColorProvider(titleColor))
             )
         }
     }
