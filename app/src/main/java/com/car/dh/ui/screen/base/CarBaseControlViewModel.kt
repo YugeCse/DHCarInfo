@@ -134,7 +134,7 @@ class CarBaseControlViewModel : ViewModel() {
         val value =
             !carBaseController.isLockAutoCloseWindowEnabled()
         carBaseController.setLockAutoCloseWindowEnabled(value)
-        applyNewUiState { it.copy(isParkUnlocked = value) }
+        applyNewUiState { it.copy(isLockAutoCloseWindow = value) }
     }
 
     /**
