@@ -127,7 +127,7 @@ class CarBaseControlViewModel : ViewModel() {
     fun toggleParkUnlockEnabled() {
         val value = !carBaseController.isParkUnlockEnabled()
         carBaseController.setParkUnlockEnabled(value)
-        applyNewUiState { it.copy(isLockAutoCloseWindow = value) }
+        applyNewUiState { it.copy(isParkUnlocked = value) }
     }
 
     /** 设置锁车自动闭窗 **/
