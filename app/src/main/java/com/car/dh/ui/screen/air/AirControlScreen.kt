@@ -19,18 +19,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,11 +47,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.car.dh.R
 import com.car.dh.ui.theme.DHCarInfoTheme
-import com.car.dh.utils.ActivityLaunch
 import com.car.dh.utils.AcAirTempUtils
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlin.time.Duration.Companion.milliseconds
+import com.car.dh.utils.ActivityLaunch
 
 
 /**
@@ -71,43 +65,21 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
         val viewModel = viewModel<AirControlViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val airStateInfo = uiState.airStateInfo
-        val isPowerOn = airStateInfo.power == 1
+        val isPowerOn = airStateInfo.isPower
         val localTemp by remember {
             derivedStateOf {
-                val raw = viewModel.controller.getTempLeft()
+                val raw = uiState.airStateInfo.temp
                 if (raw >= AirController.TEMP_MIN &&
                     raw <= AirController.TEMP_MAX
                 ) raw else AirController.TEMP_DEFAULT
             }
         }
-        val localWind by remember {
-            val raw = viewModel.controller.getWindLevel()
-            derivedStateOf {
-                raw.coerceIn(
-                    AirController.WIND_MIN,
-                    AirController.WIND_MAX
-                )
-            }
-        }
-        var localAc by remember { mutableStateOf<Int?>(null) }
-        val displayAc = localAc ?: airStateInfo.ac
-        LaunchedEffect(airStateInfo.ac) {
-            if (localAc != null && localAc == airStateInfo.ac) localAc = null
-        }
-        var localCycle by remember { mutableStateOf<Int?>(null) }
-        val displayCycle = localCycle ?: airStateInfo.cycle
-        LaunchedEffect(airStateInfo.cycle) {
-            if (localCycle != null && localCycle == airStateInfo.cycle) localCycle = null
-        }
+        val windLevel = airStateInfo.windLevel
+        val isAcOn = airStateInfo.isAcOn
+        val windCycle = airStateInfo.cycle
         val modeLabels = listOf("吹面", "吹体", "吹脚", "吹脚+除霜", "吹面+吹脚")
         var modeIndex by remember { mutableIntStateOf(0) }
         val modeLabel = modeLabels[modeIndex]
-        LaunchedEffect(viewModel) {
-            while (isActive) {
-                viewModel.syncAirStateData()
-                delay(300.milliseconds)
-            }
-        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -139,60 +111,44 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 }
                                 .fillMaxWidth()
                                 .weight(1f),
-                            active = airStateInfo.power == 1,
+                            active = airStateInfo.isPower,
                             temp = localTemp,
-                            onTempUp = { viewModel.controller.increaseTemp() },
-                            onTempDown = { viewModel.controller.decreaseTemp() },
-                            onRelease = viewModel.controller::releaseKey,
+                            onTempUp = viewModel::increaseTemp,
+                            onTempDown = viewModel::decreaseTemp,
+                            onRelease = viewModel::releaseKey,
                         )
                         HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
                         WindPanel(
-                            modifier = Modifier
-                                .padding(top = 20.dp),
+                            modifier = Modifier.padding(top = 20.dp),
                             active = isPowerOn,
-                            level = localWind,
-                            onChangeWindLevel = { level ->
-                                viewModel.controller
-                                    .setWindLevel(level)
-                            },
-                            onUpPress = {
-                                val next = (localWind + 1)
-                                    .coerceAtMost(AirController.WIND_MAX)
-                                if (next != localWind) {
-                                    viewModel.controller.setWindLevel(next)
-                                }
-                            },
-                            onDownPress = {
-                                val next = (localWind - 1)
-                                    .coerceAtLeast(AirController.WIND_MIN)
-                                if (next != localWind) {
-                                    viewModel.controller.setWindLevel(next)
-                                }
-                            },
-                            onRelease = viewModel.controller::releaseKey
+                            level = windLevel,
+                            onChangeWindLevel = viewModel::setWindLevel,
+                            onUpPress = viewModel::incrementWindLevel,
+                            onDownPress = viewModel::decrementWindLevel,
+                            onRelease = viewModel::releaseKey
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             FunctionButton(
-                                label = when (displayCycle) {
+                                modifier = Modifier.weight(1f),
+                                label = when (windCycle) {
                                     0 -> "外循环"
                                     1 -> "内循环"
                                     else -> "自动"
                                 },
-                                active = isPowerOn && displayAc == 1,
-                                onPress = viewModel.controller::toggleCycle,
-                                onRelease = viewModel.controller::releaseKey,
-                                modifier = Modifier.weight(1f)
+                                active = isPowerOn && isAcOn,
+                                onPress = viewModel::toggleCycle,
+                                onRelease = viewModel::releaseKey,
                             )
                             FunctionButton(
                                 modifier = Modifier.weight(1f),
                                 label = "前除霜",
                                 active = isPowerOn &&
                                         airStateInfo.frontDefrost == 1,
-                                onPress = viewModel.controller::toggleFrontDefrost,
-                                onRelease = viewModel.controller::releaseKey,
+                                onPress = viewModel::toggleFrontDefrost,
+                                onRelease = viewModel::releaseKey,
                             )
                             FunctionButton(
                                 modifier = Modifier.weight(1f),
@@ -203,9 +159,9 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                                 airStateInfo.modeFoot == 1),
                                 onPress = {
                                     modeIndex = (modeIndex + 1) % modeLabels.size
-                                    viewModel.controller.toggleMode()
+                                    viewModel.toggleMode()
                                 },
-                                onRelease = viewModel.controller::releaseKey,
+                                onRelease = viewModel::releaseKey,
                             )
                             Image(
                                 modifier = Modifier
@@ -223,7 +179,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(DHCarInfoTheme.inactive)
                                     .size(56.dp)
-                                    .clickable{ ActivityLaunch.backHomeDesktop() }
+                                    .clickable { ActivityLaunch.backHomeDesktop() }
                                     .padding(12.dp),
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
@@ -239,19 +195,17 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                     .padding(16.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isPowerOn &&
-                            airStateInfo.ac == 1
-                        )
+                        if (isPowerOn && isAcOn)
                             DHCarInfoTheme.accent
                         else DHCarInfoTheme.inactive
                     )
                     .size(46.dp)
                     .padding(8.dp),
-                active = isPowerOn && airStateInfo.ac == 1,
+                active = isPowerOn && isAcOn,
                 activeIcon = R.drawable.ic_air_ac_status_on,
                 inactiveIcon = R.drawable.ic_air_ac_status_off,
-                onPress = viewModel.controller::toggleAc,
-                onRelease = viewModel.controller::releaseKey,
+                onPress = viewModel::toggleAc,
+                onRelease = viewModel::releaseKey,
             )
             ImageButton(
                 modifier = Modifier
@@ -268,8 +222,8 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                 active = isPowerOn,
                 activeIcon = R.drawable.ic_air_power_status_on,
                 inactiveIcon = R.drawable.ic_air_power_status_off,
-                onPress = viewModel.controller::togglePower,
-                onRelease = viewModel.controller::releaseKey,
+                onPress = viewModel::togglePower,
+                onRelease = viewModel::releaseKey,
             )
         }
         AirSettingsDialog(isVisible = uiState.isAirSettingsDialogVisible) {
@@ -406,16 +360,18 @@ private fun WindPanel(
                 )
             }
         }
-        Text(
-            text = level.toString(),
-            color = DHCarInfoTheme.text,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.width(22.dp),
-            textAlign = TextAlign.Center
-        )
+        // Text(
+        //     text = level.toString(),
+        //     color = DHCarInfoTheme.text,
+        //     fontSize = 18.sp,
+        //     fontWeight = FontWeight.Bold,
+        //     modifier = Modifier.width(22.dp),
+        //     textAlign = TextAlign.Center
+        // )
         ImageButton(
-            modifier = Modifier.size(42.dp),
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .size(42.dp),
             onPress = onDownPress,
             onRelease = onRelease,
             active = active,
