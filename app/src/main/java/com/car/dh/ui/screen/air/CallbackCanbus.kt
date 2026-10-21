@@ -6,22 +6,13 @@ import com.car.dh.canbus.handler.HandlerCanbus
 import com.car.dh.canbus.callback.ModuleCallbackCanbusProxy
 import com.car.dh.canbus.ipc.IModuleCallback
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
 
 /* JADX INFO: loaded from: classes.dex */
-class CallbackCanbus : CallbackCanbusBase(),
-    CoroutineScope { // com.syu.module.canbus.CallbackCanbusBase
+class CallbackCanbus : CallbackCanbusBase() {
 
     companion object {
         const val U_CNT_MAX: Int = 2000
     }
-
-    override val coroutineContext: CoroutineContext
-        get() = SupervisorJob() + Dispatchers.Main
 
     override fun `in`() {
         val callback: IModuleCallback =
@@ -52,10 +43,17 @@ class CallbackCanbus : CallbackCanbusBase(),
         flts: FloatArray?,
         strs: Array<String?>?
     ) {
-        // if (updateCode >= 0 && updateCode < 98) {
+        // The toolkit registers a wider update range than DataCanbus stores.
+        // Ignore invalid codes instead of refreshing widgets for unusable events.
+        if (updateCode < 0 || updateCode >= DataCanbus.DATA.size) return
+
+        val previousValue = DataCanbus.DATA[updateCode]
         HandlerCanbus.update(updateCode, ints)
-        launch { AirControlAppWidget.updateAll() }
-        CarDataBusDataObserver.notifyDataChanged()
-        // }
+        // Only schedule a widget refresh when its backing integer state changed.
+        // Glance compositions are snapshots and are not guaranteed to remain alive
+        // to collect StateFlow emissions in the background.
+        if (ints != null && ints.isNotEmpty() && previousValue != ints[0]) {
+            CarDataBusDataObserver.notifyDataChanged()
+        }
     }
 }

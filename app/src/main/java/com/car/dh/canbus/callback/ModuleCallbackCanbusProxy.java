@@ -79,7 +79,9 @@ public class ModuleCallbackCanbusProxy extends IModuleCallback.Stub {
                     }
                     break;
                 case FinalCanbus.U_CAR_BT_ON /* 1015 */:
-                    HandlerCanbus.updateCarBt(ints[0]);
+                    if (intsOk(ints, 1)) {
+                        HandlerCanbus.updateCarBt(ints[0]);
+                    }
                     break;
                 case FinalCanbus.U_ORI_CARBACK /* 1021 */:
                     IModuleCallback callback2 = this.mCallback;

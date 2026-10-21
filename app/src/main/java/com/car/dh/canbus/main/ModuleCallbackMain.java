@@ -5,8 +5,8 @@ import android.util.Log;
 
 import com.car.dh.canbus.ipc.IModuleCallback;
 
-/* JADX INFO: loaded from: classes.dex */
 public class ModuleCallbackMain extends IModuleCallback.Stub {
+    private static final String TAG = "ModuleCallbackMain";
     private static final ModuleCallbackMain INSTANCE = new ModuleCallbackMain();
 
     public static ModuleCallbackMain getInstance() {
@@ -16,28 +16,26 @@ public class ModuleCallbackMain extends IModuleCallback.Stub {
     private ModuleCallbackMain() {
     }
 
-    public boolean intsOk(int[] ints, int min) {
+    private boolean intsOk(int[] ints, int min) {
         return ints != null && ints.length >= min;
     }
 
-    @Override // com.syu.ipc.IModuleCallback
+    @Override
     public void update(int updateCode, int[] ints, float[] flts, String[] strs) throws RemoteException {
-        if (updateCode < 200) {
-            if (updateCode == 174) {
-                if (intsOk(ints, 1)) {
-                     if (ints[1] == -2) {
-                         // Callback_0453_LZ_BBA_All.modevalue = ints[2];
-                         // Callback_0453_LZ_LandRover_KeepCD.modevalue = ints[2];
-                         Log.v("zed", "174  Callback_0453_LZ_BBA_All.modevalue  == " + ints[2]);
-                     }
-                    HandlerMain.update(updateCode, ints, flts, strs);
-                    Log.v("zed", "174  rev==alll 11111111111 ints[0]== " + ints[0]);
-                }
-            } else {
-                if (intsOk(ints, 1)) {
-                    HandlerMain.update(updateCode, ints[0]);
-                }
+        if (updateCode < 0 || updateCode >= DataMain.DATA.length) {
+            return;
+        }
+        if (updateCode == 174) {
+            // The generic handler only needs ints[0]. The optional diagnostic fields need 3 values.
+            if (!intsOk(ints, 1)) return;
+            if (intsOk(ints, 3) && ints[1] == -2) {
+                Log.v(TAG, "174 modevalue == " + ints[2]);
             }
+            HandlerMain.update(updateCode, ints, flts, strs);
+            return;
+        }
+        if (intsOk(ints, 1)) {
+            HandlerMain.update(updateCode, ints[0]);
         }
     }
 }

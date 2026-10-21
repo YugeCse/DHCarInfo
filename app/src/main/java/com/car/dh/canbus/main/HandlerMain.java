@@ -13,6 +13,7 @@ public class HandlerMain {
     };
 
     public static void update(int updateCode, int[] ints) {
+        if (updateCode < 0 || updateCode >= DataMain.DATA.length) return;
         if (ints != null && ints.length != 0 && DataMain.DATA[updateCode] != ints[0]) {
             DataMain.DATA[updateCode] = ints[0];
             DataMain.NOTIFY_EVENTS[updateCode].onNotify();
@@ -20,6 +21,7 @@ public class HandlerMain {
     }
 
     public static void update(int updateCode, int value) {
+        if (updateCode < 0 || updateCode >= DataMain.DATA.length) return;
         if (DataMain.DATA[updateCode] != value) {
             DataMain.DATA[updateCode] = value;
             DataMain.NOTIFY_EVENTS[updateCode].onNotify();
@@ -27,8 +29,9 @@ public class HandlerMain {
     }
 
     public static void update(int updateCode, int[] ints, float[] flts, String[] strs) {
+        if (updateCode < 0 || updateCode >= DataMain.DATA.length) return;
         if ((ints != null && ints.length != 0) || (strs != null && strs.length != 0)) {
-            if (ints != null && DataMain.DATA[updateCode] != ints[0]) {
+            if (ints != null && ints.length > 0 && DataMain.DATA[updateCode] != ints[0]) {
                 DataMain.DATA[updateCode] = ints[0];
             }
             DataMain.NOTIFY_EVENTS[updateCode].onNotify(ints, flts, strs);

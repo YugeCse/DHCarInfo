@@ -93,6 +93,7 @@ class CarBaseControlViewModel : ViewModel() {
     fun setDriveMode(value: Int) {
         globalConfig.carDriveMode = value
         carBaseController.setDriveMode(value)
+        CarControlAppWidget.updateDriveModeInt(value)
         applyNewUiState { it.copy(driveModeValue = value) }
     }
 

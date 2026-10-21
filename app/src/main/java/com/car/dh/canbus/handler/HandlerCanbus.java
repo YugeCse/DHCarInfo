@@ -22,6 +22,7 @@ public class HandlerCanbus {
     };
 
     public static void update(int updateCode, int[] ints) {
+        if (updateCode < 0 || updateCode >= DataCanbus.DATA.length) return;
         if (ints != null && ints.length != 0 && DataCanbus.DATA[updateCode] != ints[0]) {
             DataCanbus.DATA[updateCode] = ints[0];
             DataCanbus.NOTIFY_EVENTS[updateCode].onNotify();
@@ -29,6 +30,7 @@ public class HandlerCanbus {
     }
 
     public static void update(int updateCode, int value) {
+        if (updateCode < 0 || updateCode >= DataCanbus.DATA.length) return;
         if (DataCanbus.DATA[updateCode] != value) {
             DataCanbus.DATA[updateCode] = value;
             DataCanbus.NOTIFY_EVENTS[updateCode].onNotify();
@@ -36,8 +38,9 @@ public class HandlerCanbus {
     }
 
     public static void update(int updateCode, int[] ints, float[] flts, String[] strs) {
+        if (updateCode < 0 || updateCode >= DataCanbus.DATA.length) return;
         if ((ints != null && ints.length != 0) || (strs != null && strs.length != 0)) {
-            if (ints != null && DataCanbus.DATA[updateCode] != ints[0]) {
+            if (ints != null && ints.length > 0 && DataCanbus.DATA[updateCode] != ints[0]) {
                 DataCanbus.DATA[updateCode] = ints[0];
             }
             DataCanbus.NOTIFY_EVENTS[updateCode].onNotify(ints, flts, strs);
@@ -45,6 +48,7 @@ public class HandlerCanbus {
     }
 
     public static void canbusId(int updateCode, int value) {
+        if (updateCode < 0 || updateCode >= DataCanbus.DATA.length) return;
         if (DataCanbus.DATA[updateCode] != value) {
             DataCanbus.DATA[updateCode] = value;
             DataCanbus.NOTIFY_EVENTS[updateCode].onNotify();

@@ -12,6 +12,7 @@ public class HandleCanUp {
     };
 
     public static void update(int updateCode, int[] ints) {
+        if (updateCode < 0 || updateCode >= DataCanUp.DATA.length) return;
         if (ints != null && ints.length != 0 && DataCanUp.DATA[updateCode] != ints[0]) {
             DataCanUp.DATA[updateCode] = ints[0];
             DataCanUp.NOTIFY_EVENTS[updateCode].onNotify();
@@ -19,6 +20,7 @@ public class HandleCanUp {
     }
 
     public static void update(int updateCode, int value) {
+        if (updateCode < 0 || updateCode >= DataCanUp.DATA.length) return;
         if (DataCanUp.DATA[updateCode] != value) {
             DataCanUp.DATA[updateCode] = value;
             DataCanUp.NOTIFY_EVENTS[updateCode].onNotify();
@@ -26,6 +28,7 @@ public class HandleCanUp {
     }
 
     public static void canbusUpId(int updateCode, int value) {
+        if (updateCode < 0 || updateCode >= DataCanUp.DATA.length) return;
         if (DataCanUp.DATA[updateCode] != value) {
             DataCanUp.DATA[updateCode] = value;
             DataCanUp.NOTIFY_EVENTS[updateCode].onNotify();

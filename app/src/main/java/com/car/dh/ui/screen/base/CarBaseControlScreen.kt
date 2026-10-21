@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,22 +41,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.car.dh.R
 import com.car.dh.ui.theme.DHCarInfoTheme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun CarBaseControlScreen(modifier: Modifier = Modifier) {
     val viewModel = viewModel<CarBaseControlViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val dataVersion = CarDataBusDataObserver
+    val dataVersion by CarDataBusDataObserver
         .dataChangeFlow
         .collectAsStateWithLifecycle()
     LaunchedEffect(dataVersion) {
-        while (isActive) {
-            delay(500.milliseconds)
-            viewModel.syncCarBaseData()
-        }
+        viewModel.syncCarBaseData()
     }
     Column(
         modifier = Modifier
@@ -69,20 +64,27 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
             fontSize = 14.sp,
             color = DHCarInfoTheme.subText
         )
-        val sysLanguage by when {
-            LocalInspectionMode.current ->
-                remember { mutableIntStateOf(0) }
-
-            else -> remember { derivedStateOf { uiState.carLanguageValue } }
+        val sysLanguages = listOf(
+            stringResource(R.string.car_language_chinese),
+            stringResource(R.string.car_language_english),
+            stringResource(R.string.car_language_russian)
+        )
+        val langIndex = when (uiState.carLanguageValue) {
+            1 -> 1
+            3 -> 2
+            else -> 0
         }
-        val sysLanguages = listOf("中文", "英文", "俄语")
         ControlItemView(
             modifier = Modifier.padding(top = 12.dp),
             title = "车机语言",
             options = sysLanguages,
-            selection = sysLanguages[sysLanguage],
+            selection = sysLanguages[langIndex],
             onOptionSelected = { index, _ ->
-                val targetValue = if (index == 2) 3 else index
+                val targetValue = when (index) {
+                    1 -> 1
+                    2 -> 3
+                    else -> 0
+                }
                 viewModel.setSysLanguageValue(targetValue)
             }
         )
@@ -115,7 +117,7 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
         ControlItemView(
             title = "伴我回家持续时间",
             options = homeDelaySecTexts,
-            selection = "${homeDelaySecTexts[uiState.homeLightDelayTimeValue]}s",
+            selection = homeDelaySecTexts[uiState.homeLightDelayTimeValue.coerceIn(0, 2)],
             onOptionSelected = { index, _ -> viewModel.setHomeDelayForLighting(index) }
         )
         HorizontalDivider(color = DHCarInfoTheme.inactive)
@@ -123,7 +125,7 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
         ControlItemView(
             title = "行车自动落锁",
             options = autoLockValues,
-            selection = autoLockValues[uiState.autoLockValue],
+            selection = autoLockValues[uiState.autoLockValue.coerceIn(0, 2)],
             onOptionSelected = { index, _ -> viewModel.setRunAutoLock(index) }
         )
         HorizontalDivider(color = DHCarInfoTheme.inactive)
@@ -141,7 +143,7 @@ fun CarBaseControlScreen(modifier: Modifier = Modifier) {
         ControlItemView(
             title = "寻车指示",
             options = findCarTags,
-            selection = findCarTags[uiState.findCarIndicatorValue],
+            selection = findCarTags[uiState.findCarIndicatorValue.coerceIn(0, 1)],
             onOptionSelected = { index, _ -> viewModel.setFindCarIndicator(index) }
         )
         HorizontalDivider(color = DHCarInfoTheme.inactive)

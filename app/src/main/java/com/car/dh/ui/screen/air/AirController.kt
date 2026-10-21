@@ -99,14 +99,15 @@ class AirController private constructor(
         DataCanbus.PROXY.cmd(C_CONTRAL, bytes, null, null)
     }
 
-    override val coroutineContext: CoroutineContext
-        get() = SupervisorJob() + Dispatchers.IO
+    // Keep one scope for this process-wide singleton. Creating a new Job on every
+    // coroutineContext access detaches launched jobs from one stable lifecycle.
+    private val controllerJob = SupervisorJob()
+    override val coroutineContext: CoroutineContext = controllerJob + Dispatchers.IO
 
     fun pressKey(bytes: IntArray) {
         send(*bytes)
         launch {
             delay(500.milliseconds)
-            AirControlAppWidget.updateAll()
             CarDataBusDataObserver.notifyDataChanged()
         } //发送更新小组件的方法
     }

@@ -55,7 +55,6 @@ class AirControlViewModel : ViewModel() {
             ),
         )
         viewModelScope.launch {
-            AirControlAppWidget.updateAll()
             CarDataBusDataObserver.notifyDataChanged()
         }
     }
