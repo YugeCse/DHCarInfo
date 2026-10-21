@@ -35,6 +35,16 @@ class GlobalConfig private constructor() {
 
     private val prefs by lazy { PrefsUtils.singleton() }
 
+    private fun storedColor(key: String, default: Color): Color {
+        val value = prefs.getString(key, default.toHexCode())
+        return try {
+            value?.toColor() ?: default
+        } catch (_: IllegalArgumentException) {
+            // Preferences may be stale/corrupt after manual edits or app upgrades.
+            default
+        }
+    }
+
     /** 获取或设置车机系统语言 **/
     var carSystemLanguage: Int
         set(value) {
@@ -61,13 +71,7 @@ class GlobalConfig private constructor() {
             prefs.put("airAppWidgetMarkNumberColor", value.toHexCode())
             CarDataBusDataObserver.notifyDataChanged()
         }
-        get() {
-            val hexCode = prefs.getString(
-                "airAppWidgetMarkNumberColor",
-                DHCarInfoTheme.subText.toHexCode()
-            )
-            return Color(android.graphics.Color.parseColor(hexCode))
-        }
+        get() = storedColor("airAppWidgetMarkNumberColor", DHCarInfoTheme.subText)
 
     /** 空调小组件的刻度数字的选中颜色 **/
     var airAppWidgetMarkNumberSelectColor: Color
@@ -75,13 +79,7 @@ class GlobalConfig private constructor() {
             prefs.put("airAppWidgetMarkNumberSelectColor", value.toHexCode())
             CarDataBusDataObserver.notifyDataChanged()
         }
-        get() {
-            val hexCode = prefs.getString(
-                "airAppWidgetMarkNumberSelectColor",
-                DHCarInfoTheme.accent.toHexCode()
-            )
-            return Color(android.graphics.Color.parseColor(hexCode))
-        }
+        get() = storedColor("airAppWidgetMarkNumberSelectColor", DHCarInfoTheme.accent)
 
     /** 空调小组件的刻度线的颜色 **/
     var airAppWidgetMarkOvalColor: Color
@@ -89,13 +87,7 @@ class GlobalConfig private constructor() {
             prefs.put("airAppWidgetMarkOvalColor", value.toHexCode())
             CarDataBusDataObserver.notifyDataChanged()
         }
-        get() {
-            val hexCode = prefs.getString(
-                "airAppWidgetMarkOvalColor",
-                DHCarInfoTheme.inactive.toHexCode()
-            )
-            return Color(android.graphics.Color.parseColor(hexCode))
-        }
+        get() = storedColor("airAppWidgetMarkOvalColor", DHCarInfoTheme.inactive)
 
     /** 空调小组件的刻度线的选中颜色 **/
     var airAppWidgetMarkOvalSelectColor: Color
@@ -103,13 +95,7 @@ class GlobalConfig private constructor() {
             prefs.put("airAppWidgetMarkOvalSelectColor", value.toHexCode())
             CarDataBusDataObserver.notifyDataChanged()
         }
-        get() {
-            val hexCode = prefs.getString(
-                "airAppWidgetMarkOvalSelectColor",
-                DHCarInfoTheme.accent.toHexCode()
-            )
-            return Color(android.graphics.Color.parseColor(hexCode))
-        }
+        get() = storedColor("airAppWidgetMarkOvalSelectColor", DHCarInfoTheme.accent)
 
     /** 空调小组件的温度数字颜色 **/
     var airAppWidgetTempTextColor: Color
@@ -117,10 +103,7 @@ class GlobalConfig private constructor() {
             prefs.put("airAppWidgetTempTextColor", value.toHexCode())
             CarDataBusDataObserver.notifyDataChanged()
         }
-        get() = prefs.getString(
-            "airAppWidgetTempTextColor",
-            DHCarInfoTheme.accent.toHexCode()
-        )?.toColor() ?: DHCarInfoTheme.accent
+        get() = storedColor("airAppWidgetTempTextColor", DHCarInfoTheme.accent)
 
     /** 空调小组件子文本颜色 **/
     var airAppWidgetSubTextColor: Color
@@ -128,10 +111,7 @@ class GlobalConfig private constructor() {
             prefs.put("airAppWidgetSubTextColor", value.toHexCode())
             CarDataBusDataObserver.notifyDataChanged()
         }
-        get() = prefs.getString(
-            "airAppWidgetSubTextColor",
-            DHCarInfoTheme.subText.toHexCode()
-        )?.toColor() ?: DHCarInfoTheme.subText
+        get() = storedColor("airAppWidgetSubTextColor", DHCarInfoTheme.subText)
 
 }
 

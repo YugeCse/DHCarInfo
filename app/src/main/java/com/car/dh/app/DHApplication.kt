@@ -5,6 +5,7 @@ import com.car.dh.canbus.connection.ConnectionCanbus
 import com.car.dh.canbus.connection.ConnectionMain
 import com.car.dh.canbus.connection.MsToolkitConnection
 import com.car.dh.canbus.up.ConnectionCanUp
+import com.car.dh.ui.screen.base.CarControlAppWidget
 
 /** Application对象 **/
 class DHApplication : Application() {
@@ -21,6 +22,8 @@ class DHApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         _instance = this
+        // Restore the widget's displayed drive mode from persisted configuration.
+        CarControlAppWidget.updateDriveModeInt(GlobalConfig.singleton().carDriveMode)
         startConnectService()
     }
 

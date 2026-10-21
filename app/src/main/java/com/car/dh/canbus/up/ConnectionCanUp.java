@@ -32,6 +32,6 @@ public class ConnectionCanUp implements ConnectionObserver {
     public void onDisconnected() {
         DataCanUp.PROXY.setRemoteModule(null);
         DataCanUp.DATA[100] = 0;
-        ModuleCallbackCanbusProxy.getInstance().setCallbackCanbus(null);
+        ModuleCallbackCanUpProxy.getInstance().setCallbackCanbus(null);
     }
 }

@@ -93,6 +93,7 @@ class CarBaseControlViewModel : ViewModel() {
     fun setDriveMode(value: Int) {
         globalConfig.carDriveMode = value
         carBaseController.setDriveMode(value)
+        CarControlAppWidget.updateDriveModeInt(value)
         applyNewUiState { it.copy(driveModeValue = value) }
     }
 
@@ -126,7 +127,7 @@ class CarBaseControlViewModel : ViewModel() {
     fun toggleParkUnlockEnabled() {
         val value = !carBaseController.isParkUnlockEnabled()
         carBaseController.setParkUnlockEnabled(value)
-        applyNewUiState { it.copy(isParkUnlocked = value) }
+        applyNewUiState { it.copy(isLockAutoCloseWindow = value) }
     }
 
     /** 设置锁车自动闭窗 **/
@@ -134,7 +135,7 @@ class CarBaseControlViewModel : ViewModel() {
         val value =
             !carBaseController.isLockAutoCloseWindowEnabled()
         carBaseController.setLockAutoCloseWindowEnabled(value)
-        applyNewUiState { it.copy(isParkUnlocked = value) }
+        applyNewUiState { it.copy(isLockAutoCloseWindow = value) }
     }
 
     /**

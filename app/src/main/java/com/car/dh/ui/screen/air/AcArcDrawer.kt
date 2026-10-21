@@ -93,16 +93,19 @@ object AcArcDrawer {
         canvas.drawArc(rect, startAngle, sweepAngle, false, arcPaint)
 
         // 4. 绘制激活进度圆弧
-        if (totalGears > 1) {
-            val progressSweep = (activeGear.toFloat() / (totalGears - 1)) * sweepAngle
+        val gearCount = totalGears.coerceAtLeast(0)
+        val gearDenominator = (gearCount - 1).coerceAtLeast(1)
+        if (gearCount > 1) {
+            val progressGear = activeGear.coerceIn(0, gearCount - 1)
+            val progressSweep = (progressGear.toFloat() / gearDenominator) * sweepAngle
             canvas.drawArc(rect, startAngle, progressSweep, false, activeArcPaint)
         }
         // 5. 绘制档位刻度
         val centerX = width / 2f
         val centerY = startY + radius
-        for (i in 0 until totalGears) {
+        for (i in 0 until gearCount) {
             // 计算当前档位的角度 (从 180 到 360)
-            val angle = startAngle + (i.toFloat() / (totalGears - 1)) * sweepAngle
+            val angle = startAngle + (i.toFloat() / gearDenominator) * sweepAngle
             val rad = Math.toRadians(angle.toDouble())
 
             // 计算刻度线起点和终点

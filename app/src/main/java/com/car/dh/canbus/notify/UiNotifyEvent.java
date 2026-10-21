@@ -4,98 +4,89 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.util.ArrayList;
+import java.util.List;
 
-/* JADX INFO: loaded from: classes.dex */
 public final class UiNotifyEvent implements Runnable {
     public static final Handler HANDLER_UI = new Handler(Looper.getMainLooper());
-    private ArrayList<IUiNotify> mUiNotifies = new ArrayList<>();
+    private final ArrayList<IUiNotify> mUiNotifies = new ArrayList<>();
     private int mUpdateCode;
 
-    public UiNotifyEvent() {
-    }
+    public UiNotifyEvent() { }
 
     public UiNotifyEvent(int updateCode) {
         this.mUpdateCode = updateCode;
     }
 
-    public int getUpdateCode() {
-        return this.mUpdateCode;
-    }
+    public synchronized int getUpdateCode() { return mUpdateCode; }
 
-    public void setUpdateCode(int updateCode) {
-        this.mUpdateCode = updateCode;
-    }
+    public synchronized void setUpdateCode(int updateCode) { this.mUpdateCode = updateCode; }
 
-    public synchronized int size() {
-        return this.mUiNotifies.size();
-    }
+    public synchronized int size() { return mUiNotifies.size(); }
 
     public synchronized void addNotify(IUiNotify notify) {
-        if (notify != null) {
-            if (!this.mUiNotifies.contains(notify)) {
-                this.mUiNotifies.add(notify);
-            }
-        }
+        if (notify != null && !mUiNotifies.contains(notify)) mUiNotifies.add(notify);
     }
 
-    public synchronized void addNotify(IUiNotify notify, int onNotify) {
-        if (notify != null) {
-            if (!this.mUiNotifies.contains(notify)) {
-                this.mUiNotifies.add(notify);
-            }
-            if (onNotify == 1) {
-                notify.onNotify(this.mUpdateCode, null, null, null);
-            }
+    public void addNotify(IUiNotify notify, int onNotify) {
+        boolean added;
+        int updateCode;
+        synchronized (this) {
+            added = notify != null && !mUiNotifies.contains(notify);
+            if (added) mUiNotifies.add(notify);
+            updateCode = mUpdateCode;
         }
+        if (onNotify == 1 && notify != null) notify.onNotify(updateCode, null, null, null);
     }
 
     public synchronized void removeNotify(IUiNotify notify) {
-        if (notify != null) {
-            this.mUiNotifies.remove(notify);
-        }
+        if (notify != null) mUiNotifies.remove(notify);
     }
 
-    public synchronized void clearNotifies() {
-        this.mUiNotifies.clear();
+    public synchronized void clearNotifies() { mUiNotifies.clear(); }
+
+    public void onNotify() {
+        if (hasListeners()) HANDLER_UI.post(this);
     }
 
-    public synchronized void onNotify() {
-        if (this.mUiNotifies.size() > 0) {
-            HANDLER_UI.post(this);
-        }
+    public void onNotify(int[] ints, float[] flts, String[] strs) {
+        if (hasListeners()) HANDLER_UI.post(new NotifyData(ints, flts, strs));
     }
 
-    public synchronized void onNotify(int[] ints, float[] flts, String[] strs) {
-        if (this.mUiNotifies.size() > 0) {
-            HANDLER_UI.post(new NofityData(ints, flts, strs));
-        }
-    }
+    private synchronized boolean hasListeners() { return !mUiNotifies.isEmpty(); }
 
-    private class NofityData implements Runnable {
-        public float[] flts;
-        public int[] ints;
-        public String[] strs;
+    private synchronized List<IUiNotify> snapshot() { return new ArrayList<>(mUiNotifies); }
 
-        public NofityData(int[] ints, float[] flts, String[] strs) {
+    private final class NotifyData implements Runnable {
+        private final int[] ints;
+        private final float[] flts;
+        private final String[] strs;
+
+        NotifyData(int[] ints, float[] flts, String[] strs) {
             this.ints = ints;
             this.flts = flts;
             this.strs = strs;
         }
 
-        @Override // java.lang.Runnable
-        public void run() {
-            synchronized (UiNotifyEvent.this) {
-                for (IUiNotify notify : UiNotifyEvent.this.mUiNotifies) {
-                    notify.onNotify(UiNotifyEvent.this.mUpdateCode, this.ints, this.flts, this.strs);
+        @Override public void run() {
+            int code = getUpdateCode();
+            for (IUiNotify notify : snapshot()) {
+                try {
+                    notify.onNotify(code, ints, flts, strs);
+                } catch (RuntimeException exception) {
+                    android.util.Log.e("UiNotifyEvent", "Listener failed for updateCode=" + code, exception);
                 }
             }
         }
     }
 
-    @Override // java.lang.Runnable
-    public synchronized void run() {
-        for (IUiNotify notify : this.mUiNotifies) {
-            notify.onNotify(this.mUpdateCode, null, null, null);
+    @Override public void run() {
+        int code = getUpdateCode();
+        for (IUiNotify notify : snapshot()) {
+            try {
+                notify.onNotify(code, null, null, null);
+            } catch (RuntimeException exception) {
+                android.util.Log.e("UiNotifyEvent", "Listener failed for updateCode=" + code, exception);
+            }
         }
     }
 }

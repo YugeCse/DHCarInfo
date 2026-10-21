@@ -3,18 +3,18 @@ package com.car.dh.ui.screen.base
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
-/** CarBus数据变化通知类 **/
+/** CarBus data change notifier. */
 object CarDataBusDataObserver {
-
     private val _dataChangeFlow = MutableStateFlow(0L)
 
-    /** 数据变化数据流 **/
+    /** Monotonically increasing revision; unlike currentTimeMillis this cannot collide within a millisecond. */
     val dataChangeFlow: StateFlow<Long> = _dataChangeFlow.asStateFlow()
 
-    /** 通知数据变化 **/
+    /** Notify in-process Compose consumers and explicitly refresh Glance remote widgets. */
     fun notifyDataChanged() {
-        _dataChangeFlow.value = System.currentTimeMillis()
+        _dataChangeFlow.update { it + 1L }
+        CarWidgetUpdateCoordinator.requestWidgetRefresh()
     }
-
 }

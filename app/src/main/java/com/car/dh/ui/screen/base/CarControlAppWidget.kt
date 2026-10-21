@@ -63,7 +63,10 @@ class CarControlAppWidget : GlanceAppWidgetReceiver() {
 
         val driveModeInt: StateFlow<Int> = _driveModeIntFlow.asStateFlow()
 
-        fun updateDriveModeInt(value: Int) = _driveModeIntFlow.update { value }
+        fun updateDriveModeInt(value: Int) {
+            _driveModeIntFlow.update { value }
+            CarWidgetUpdateCoordinator.requestWidgetRefresh()
+        }
 
         private val impl by lazy { CarControlAppWidgetImpl() }
 
