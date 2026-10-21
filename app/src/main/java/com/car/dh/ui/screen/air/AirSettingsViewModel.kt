@@ -87,6 +87,7 @@ class AirSettingsViewModel : ViewModel() {
             airAppWidgetTempTextColor = color
         )
         globalConfig.airAppWidgetTempTextColor = color
+        CarDataBusDataObserver.notifyDataChanged()
     }
 
     fun setAirAppWidgetMarkOvalColor(color: Color) {
@@ -94,6 +95,7 @@ class AirSettingsViewModel : ViewModel() {
             airAppWidgetMarkOvalColor = color
         )
         globalConfig.airAppWidgetMarkOvalColor = color
+        CarDataBusDataObserver.notifyDataChanged()
     }
 
     fun setAirAppWidgetMarkOvalSelectColor(color: Color) {
@@ -101,6 +103,7 @@ class AirSettingsViewModel : ViewModel() {
             airAppWidgetMarkOvalSelectColor = color
         )
         globalConfig.airAppWidgetMarkOvalSelectColor = color
+        CarDataBusDataObserver.notifyDataChanged()
     }
 
     fun setAirAppWidgetMarkNumberColor(color: Color) {
@@ -108,6 +111,7 @@ class AirSettingsViewModel : ViewModel() {
             airAppWidgetMarkNumberColor = color
         )
         globalConfig.airAppWidgetMarkNumberColor = color
+        CarDataBusDataObserver.notifyDataChanged()
     }
 
     fun setAirAppWidgetMarkNumberSelectColor(color: Color) {
@@ -115,12 +119,14 @@ class AirSettingsViewModel : ViewModel() {
             airAppWidgetMarkNumberSelectColor = color
         )
         globalConfig.airAppWidgetMarkNumberSelectColor = color
+        CarDataBusDataObserver.notifyDataChanged()
     }
 
     fun setAirAppWidgetSubTextColor(color: Color){
         _uiState.value = _uiState.value
             .copy(airAppWidgetSubTextColor = color)
         globalConfig.airAppWidgetSubTextColor = color
+        CarDataBusDataObserver.notifyDataChanged()
     }
 
 }

@@ -144,10 +144,16 @@ object AcArcDrawer {
         }
 
         // 6. 绘制中心温度
-        val tempText = when (currentTemp) {
-            AirController.TEMP_MIN -> "LO"
-            AirController.TEMP_MAX -> "HI"
-            currentTemp.toInt().toFloat() ->
+        val tempText = when {
+            currentTemp == AirController.TEMP_MIN ||
+                    currentTemp == AirController.TEMP_LOW ||
+                    (currentTemp <= -0.5f && currentTemp > -1.5f) -> "LO"
+
+            currentTemp == AirController.TEMP_MAX ||
+                    currentTemp == AirController.TEMP_HIGH ||
+                    (currentTemp <= -1.5f && currentTemp > -2.5f) -> "HI"
+
+            currentTemp.toInt().toFloat() == currentTemp ->
                 "${currentTemp.toInt()}°"
 
             else -> "${currentTemp}°"

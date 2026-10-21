@@ -103,7 +103,13 @@ private fun CarControlAppWidgetContent() {
         val driveModeInt by CarControlAppWidget.driveModeInt.collectAsState()
         Box(
             modifier = GlanceModifier
-                .cornerRadius(android.R.dimen.system_app_widget_background_radius)
+                .run {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        cornerRadius(android.R.dimen.system_app_widget_background_radius)
+                    } else {
+                        cornerRadius(16.dp)
+                    }
+                }
                 .run {
                     if (!globalConfig.isAirAppWidgetRenderBackground) this
                     else background(ImageProvider(R.drawable.bg_app_widget))

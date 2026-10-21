@@ -75,8 +75,10 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
         val localTemp by remember {
             derivedStateOf {
                 val raw = viewModel.controller.getTempLeft()
-                if (raw >= AirController.TEMP_MIN &&
-                    raw <= AirController.TEMP_MAX
+                if ((raw >= AirController.TEMP_MIN &&
+                            raw <= AirController.TEMP_MAX) ||
+                    raw == AirController.TEMP_LOW ||
+                    raw == AirController.TEMP_HIGH
                 ) raw else AirController.TEMP_DEFAULT
             }
         }

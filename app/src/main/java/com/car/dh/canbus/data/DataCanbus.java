@@ -14,7 +14,7 @@ public class DataCanbus {
     public static final UiNotifyEvent[] NOTIFY_EVENTS = new UiNotifyEvent[FinalCanbus.U_CNT_MAX];
 
     static {
-        for (int i = 0; i < 1200; i++) {
+        for (int i = 0; i < FinalCanbus.U_CNT_MAX; i++) {
             NOTIFY_EVENTS[i] = new UiNotifyEvent(i);
         }
         DATA[1001] = 1;
