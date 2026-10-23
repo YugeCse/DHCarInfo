@@ -51,9 +51,12 @@ class CarControlAppWidget : GlanceAppWidgetReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
+        if (Intent.ACTION_BOOT_COMPLETED == intent.action ||
+            Intent.ACTION_REBOOT == intent.action
+        ) {
             CoroutineScope(Dispatchers.Default)
                 .launch { updateAll() }
+            CarDataBusDataObserver.notifyDataChanged()
         }
     }
 
@@ -106,12 +109,11 @@ private fun CarControlAppWidgetContent() {
                     else background(ImageProvider(R.drawable.bg_app_widget))
                 }
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(vertical = 12.dp, horizontal = 8.dp),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
                 modifier = GlanceModifier
-                    .padding(top = 20.dp)
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -199,7 +201,7 @@ private fun CarControlAppWidgetContent() {
                         textAlign = TextAlign.Start,
                         color = ColorProvider(globalConfig.airAppWidgetSubTextColor)
                     ),
-                    modifier = GlanceModifier.padding(top = 30.dp),
+                    modifier = GlanceModifier.padding(top = 12.dp),
                 )
                 Row(
                     modifier = GlanceModifier

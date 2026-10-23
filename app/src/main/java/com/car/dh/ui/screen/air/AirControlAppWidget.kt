@@ -67,9 +67,12 @@ class AirControlAppWidget : GlanceAppWidgetReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
+        if (Intent.ACTION_BOOT_COMPLETED == intent.action ||
+            Intent.ACTION_REBOOT == intent.action
+        ) {
             CoroutineScope(Dispatchers.Default)
                 .launch { updateAll() }
+            CarDataBusDataObserver.notifyDataChanged()
         }
     }
 
@@ -98,7 +101,7 @@ class AirControlAppWidgetImpl : GlanceAppWidget() {
                 currentSize.width < 60.dp
             ) {
                 var maxSize = max(currentSize.width, currentSize.height)
-                if (maxSize < 350.dp) maxSize = 350.dp
+                if (maxSize < 350.dp) maxSize = 370.dp
                 currentSize = DpSize(maxSize, maxSize + 30.dp)
             }
             AirControlAppWidgetContent(widgetSize = currentSize)
@@ -168,7 +171,7 @@ private fun AirControlAppWidgetContent(
                     else background(ImageProvider(R.drawable.bg_app_widget))
                 }
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(vertical = 12.dp, horizontal = 8.dp),
             contentAlignment = Alignment.TopEnd
         ) {
             ImageButton(
@@ -378,7 +381,7 @@ private fun ControlAdjustView(
         ) {
             ImageButton(
                 onClick = onDecrementClick,
-                modifier = GlanceModifier.size(48.dp),
+                modifier = GlanceModifier.size(50.dp),
                 active = active,
                 useColorTint = false,
                 activeIcon = R.drawable.ic_data_decrement,
@@ -386,7 +389,7 @@ private fun ControlAdjustView(
             )
             ImageButton(
                 onClick = onIncrementClick,
-                modifier = GlanceModifier.size(48.dp),
+                modifier = GlanceModifier.size(50.dp),
                 margin = PaddingValues(start = 20.dp),
                 active = active,
                 useColorTint = false,

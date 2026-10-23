@@ -24,6 +24,7 @@ class GlobalConfig private constructor() {
         fun initConfigs() {
             try {
                 val carBaseController = CarBaseController.singleton()
+                _instance.carDriveMode = 0 //默认设置回舒适模式
                 carBaseController.setLanguage(_instance.carSystemLanguage)
                 carBaseController.setDriveMode2(_instance.carDriveMode)
             } catch (e: Exception) {
