@@ -152,6 +152,28 @@ class AirControlViewModel : ViewModel() {
         } else controller.decreaseTemp()
     }
 
+    /** 温度打到最低 (LO) **/
+    fun setTempMin() {
+        if (isInEditInspectorMode) {
+            updateUiState {
+                copy(
+                    airStateInfo = airStateInfo.copy(temp = AirController.TEMP_MIN)
+                )
+            }
+        } else controller.setTempMin()
+    }
+
+    /** 温度打到最高 (HI) **/
+    fun setTempMax() {
+        if (isInEditInspectorMode) {
+            updateUiState {
+                copy(
+                    airStateInfo = airStateInfo.copy(temp = AirController.TEMP_MAX)
+                )
+            }
+        } else controller.setTempMax()
+    }
+
     /** 设置风力 **/
     fun setWindLevel(level: Int) {
         if (isInEditInspectorMode) {

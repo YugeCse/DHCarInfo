@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.asStateFlow
  * @param autoLockValue 自动落锁
  * @param isParkUnlocked 停车解锁
  * @param isLockAutoCloseWindow 落锁自动关窗
+ * @param isSpeedLockEnabled 车速锁止
+ * @param isLeaveAutoLockEnabled 离开自动落锁
+ * @param isRemoteLockFeedbackEnabled 遥控锁车反馈
+ * @param isOpenDoorLightEnabled 开门转向灯双闪提示
+ * @param isLockLightOffEnabled 闭锁后自动熄灭位置灯
+ * @param isDaytimeRunningLightEnabled 日间行车灯
  * @param findCarIndicatorValue 寻车指示
  * @param isActiveCabinCleanEnabled 主动座舱清洁
  * @param isAirAutoDryEnabled 空调自干燥
@@ -31,6 +37,12 @@ data class CarBaseControlUiState(
     val autoLockValue: Int = 0,
     val isParkUnlocked: Boolean = false,
     val isLockAutoCloseWindow: Boolean = false,
+    val isSpeedLockEnabled: Boolean = false,
+    val isLeaveAutoLockEnabled: Boolean = false,
+    val isRemoteLockFeedbackEnabled: Boolean = false,
+    val isOpenDoorLightEnabled: Boolean = false,
+    val isLockLightOffEnabled: Boolean = false,
+    val isDaytimeRunningLightEnabled: Boolean = false,
     val findCarIndicatorValue: Int = 0,
     val isActiveCabinCleanEnabled: Boolean = false,
     val isAirAutoDryEnabled: Boolean = false,
@@ -68,6 +80,12 @@ class CarBaseControlViewModel : ViewModel() {
             autoLockValue = carBaseController.getRunAutoLock(),
             isParkUnlocked = carBaseController.isParkUnlockEnabled(),
             isLockAutoCloseWindow = carBaseController.isLockAutoCloseWindowEnabled(),
+            isSpeedLockEnabled = carBaseController.isSpeedLockEnabled(),
+            isLeaveAutoLockEnabled = carBaseController.isLeaveAutoLockEnabled(),
+            isRemoteLockFeedbackEnabled = carBaseController.isRemoteLockFeedbackEnabled(),
+            isOpenDoorLightEnabled = carBaseController.isOpenDoorLightEnabled(),
+            isLockLightOffEnabled = carBaseController.isLockLightOffEnabled(),
+            isDaytimeRunningLightEnabled = carBaseController.isDaytimeRunningLightEnabled(),
             findCarIndicatorValue = carBaseController.getFindCarIndicator(),
             isActiveCabinCleanEnabled = carBaseController.isActiveCabinCleanEnabled(),
             isAirAutoDryEnabled = carBaseController.isAirAutoDryEnabled(),
@@ -135,6 +153,48 @@ class CarBaseControlViewModel : ViewModel() {
             !carBaseController.isLockAutoCloseWindowEnabled()
         carBaseController.setLockAutoCloseWindowEnabled(value)
         applyNewUiState { it.copy(isLockAutoCloseWindow = value) }
+    }
+
+    /** 切换车速锁止 **/
+    fun toggleSpeedLockEnabled() {
+        val value = !carBaseController.isSpeedLockEnabled()
+        carBaseController.setSpeedLockEnabled(value)
+        applyNewUiState { it.copy(isSpeedLockEnabled = value) }
+    }
+
+    /** 切换离开自动落锁 **/
+    fun toggleLeaveAutoLockEnabled() {
+        val value = !carBaseController.isLeaveAutoLockEnabled()
+        carBaseController.setLeaveAutoLockEnabled(value)
+        applyNewUiState { it.copy(isLeaveAutoLockEnabled = value) }
+    }
+
+    /** 切换遥控锁车反馈 **/
+    fun toggleRemoteLockFeedbackEnabled() {
+        val value = !carBaseController.isRemoteLockFeedbackEnabled()
+        carBaseController.setRemoteLockFeedbackEnabled(value)
+        applyNewUiState { it.copy(isRemoteLockFeedbackEnabled = value) }
+    }
+
+    /** 切换开门转向灯双闪提示 **/
+    fun toggleOpenDoorLightEnabled() {
+        val value = !carBaseController.isOpenDoorLightEnabled()
+        carBaseController.setOpenDoorLightEnabled(value)
+        applyNewUiState { it.copy(isOpenDoorLightEnabled = value) }
+    }
+
+    /** 切换闭锁后自动熄灭位置灯 **/
+    fun toggleLockLightOffEnabled() {
+        val value = !carBaseController.isLockLightOffEnabled()
+        carBaseController.setLockLightOffEnabled(value)
+        applyNewUiState { it.copy(isLockLightOffEnabled = value) }
+    }
+
+    /** 切换日间行车灯 **/
+    fun toggleDaytimeRunningLightEnabled() {
+        val value = !carBaseController.isDaytimeRunningLightEnabled()
+        carBaseController.setDaytimeRunningLightEnabled(value)
+        applyNewUiState { it.copy(isDaytimeRunningLightEnabled = value) }
     }
 
     /**

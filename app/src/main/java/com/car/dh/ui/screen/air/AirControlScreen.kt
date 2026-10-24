@@ -115,6 +115,8 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             temp = localTemp,
                             onTempUp = viewModel::increaseTemp,
                             onTempDown = viewModel::decreaseTemp,
+                            onSetMin = viewModel::setTempMin,
+                            onSetMax = viewModel::setTempMax,
                             onRelease = viewModel::releaseKey,
                         )
                         HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
@@ -150,6 +152,12 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 onPress = viewModel::toggleFrontDefrost,
                                 onRelease = viewModel::releaseKey,
                             )
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             FunctionButton(
                                 modifier = Modifier.weight(1f),
                                 label = modeLabel,
@@ -238,6 +246,8 @@ private fun TemperaturePanel(
     active: Boolean,
     onTempUp: () -> Unit,
     onTempDown: () -> Unit,
+    onSetMin: () -> Unit = {},
+    onSetMax: () -> Unit = {},
     onRelease: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -251,8 +261,14 @@ private fun TemperaturePanel(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            TempExtremeButton(
+                label = "LO",
+                atExtreme = AcAirTempUtils.formatTemp(temp) == "LO",
+                enabled = active,
+                onClick = onSetMin
+            )
             Column(
                 modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceEvenly
@@ -284,6 +300,7 @@ private fun TemperaturePanel(
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
+                    maxLines = 1,
                     autoSize = TextAutoSize.StepBased(maxFontSize = 200.sp)
                 )
                 Text(
@@ -313,7 +330,43 @@ private fun TemperaturePanel(
                     inactiveIcon = R.drawable.ic_data_increment_inactive,
                 )
             }
+            TempExtremeButton(
+                label = "HI",
+                atExtreme = AcAirTempUtils.formatTemp(temp) == "HI",
+                enabled = active,
+                onClick = onSetMax
+            )
         }
+    }
+}
+
+/** LO / HI 温度极值快捷按钮：温度到达对应极值时高亮 **/
+@Composable
+private fun TempExtremeButton(
+    label: String,
+    atExtreme: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val bg by animateColorAsState(
+        targetValue = if (atExtreme) DHCarInfoTheme.accent else DHCarInfoTheme.inactive,
+        animationSpec = tween(180),
+        label = "tempExtreme$label"
+    )
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(bg)
+            .size(width = 44.dp, height = 28.dp)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = DHCarInfoTheme.text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 

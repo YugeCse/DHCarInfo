@@ -9,6 +9,7 @@ import com.car.dh.ui.screen.air.AirController
  * @param isAcOn AC 是否打开
  * @param cycle 循环模式，1-内循环，其他-外循环
  * @param frontDefrost 前窗除雾开关
+ * 注：实车不支持 AUTO、后除雾（后窗除雾）功能，不放状态字段
  * @param modeUp 吹头
  * @param modeBody 吹身体
  * @param modeFoot 吹脚

@@ -318,7 +318,7 @@ class CarBaseController private constructor() {
     fun setLeaveAutoLockEnabled(enabled: Boolean) =
         sendCmd(CMD_SET, FUNC_LEAVE_AUTO_LOCK, if (enabled) 1 else 0)
 
-    /** 闭锁车门自动关窗：更新码 178，功能码 8 */
+    /** 闭锁车门自动关窗：更新码 178，功能码 8（注意：原车上报状态语义相反，故此处取反） */
     fun isLockAutoCloseWindowEnabled(): Boolean =
         !getBoolean(UPDATE_LOCK_AUTO_CLOSE_WINDOW)
 

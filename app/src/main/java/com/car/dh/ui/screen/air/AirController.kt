@@ -38,9 +38,6 @@ class AirController private constructor(
         const val U_AIR_REAR = 16
         const val U_AIR_FRONT = 65
 
-        const val U_AIR_SEATHEAT_LEFT = 29
-
-        const val U_AIR_SEATHEAT_RIGHT = 30
         const val U_AIR_BLOW_UP_LEFT = 18
         const val U_AIR_BLOW_BODY_LEFT = 19
         const val U_AIR_BLOW_FOOT_LEFT = 20
@@ -94,6 +91,12 @@ class AirController private constructor(
         get() = if (isX1Family) U_AIR_TEMP_RIGHT_X1 else U_AIR_TEMP_RIGHT_OTHER
 
     // ---------------- 发送 ----------------
+    // 6 字节按键模拟帧，格式来自原车 YuanJingX1AirControlAct.sendCmd()（本车型权威实现）：
+    // b0: 0x80电源 0x02A/C 0x10前除雾 0x40风向 0x20AUTO
+    // b1: 高4位=风量档位 0x04后除雾
+    // b2: 0x01内外循环
+    // b3: 0x02温度+ 0x01温度-
+    // 按下 100ms 后必须补发全零释放帧（原车如此）
 
     private fun send(vararg bytes: Int) {
         DataCanbus.PROXY.cmd(C_CONTRAL, bytes, null, null)
@@ -105,7 +108,9 @@ class AirController private constructor(
     fun pressKey(bytes: IntArray) {
         send(*bytes)
         launch {
-            delay(500.milliseconds)
+            delay(100.milliseconds)
+            releaseKey()
+            delay(400.milliseconds)
             AirControlAppWidget.updateAll()
             CarDataBusDataObserver.notifyDataChanged()
         } //发送更新小组件的方法
@@ -165,20 +170,69 @@ class AirController private constructor(
     }
 
     // ---------------- 控制 ----------------
+    // 均为 6 字节按键模拟帧，与原车 YuanJingX1AirControlAct 一致
 
+    /** 电源切换（b0=0x80） **/
     fun togglePower() = pressKey(intArrayOf(0x80, 0, 0, 0, 0, 0))
 
+    /** A/C 切换（b0=0x02） **/
     fun toggleAc() = pressKey(intArrayOf(0x02, 0, 0, 0, 0, 0))
 
+    /** 前除雾切换（b0=0x10） **/
     fun toggleFrontDefrost() = pressKey(intArrayOf(0x10, 0, 0, 0, 0, 0))
 
+    /**
+     * 后除雾切换（b1=0x04）。
+     * 注意：实车（帝豪22款尊贵版）无后除雾功能，协议方法保留但 UI 不挂入口。
+     **/
+    fun toggleRearDefrost() = pressKey(intArrayOf(0, 0x04, 0, 0, 0, 0))
+
+    /** 内外循环切换（b2=0x01） **/
     fun toggleCycle() = pressKey(intArrayOf(0, 0, 0x01, 0, 0, 0))
 
+    /**
+     * 自动模式切换（b0=0x20）。
+     * 注意：实车（帝豪22款尊贵版）无 AUTO 功能，协议方法保留但 UI 不挂入口。
+     **/
+    fun toggleAuto() = pressKey(intArrayOf(0x20, 0, 0, 0, 0, 0))
+
+    /** 风向切换（b0=0x40） **/
     fun toggleMode() = pressKey(intArrayOf(0x40, 0, 0, 0, 0, 0))
 
-    fun increaseTemp() = pressKey(intArrayOf(0, 0, 0, 0x02, 0x02, 0))
+    /** 温度升高（b3=0x02，单步 +0.5°C） **/
+    fun increaseTemp() = pressKey(intArrayOf(0, 0, 0, 0x02, 0, 0))
 
-    fun decreaseTemp() = pressKey(intArrayOf(0, 0, 0, 0x01, 0x01, 0))
+    /** 温度降低（b3=0x01，单步 -0.5°C） **/
+    fun decreaseTemp() = pressKey(intArrayOf(0, 0, 0, 0x01, 0, 0))
+
+    /**
+     * 快速将温度设定到目标值（用于 LO/HI 极值快捷键）。
+     * CAN 协议仅支持单步 ±0.5°C 增减，按原车节奏（按下→100ms→释放）逐步发送。
+     */
+    fun setTempTo(target: Float) {
+        val current = getTempLeft()
+        val clamped = target.coerceIn(TEMP_MIN, TEMP_MAX)
+        // 当前温度无效（LO/HI/未读取）或已到位时忽略
+        if (current !in TEMP_MIN..TEMP_MAX || current == clamped) return
+        val key = if (clamped > current) 0x02 else 0x01
+        val steps = ((clamped - current) / TEMP_STEP).toInt().coerceAtLeast(1)
+        launch {
+            repeat(steps) {
+                send(0, 0, 0, key, 0, 0)
+                delay(100.milliseconds)
+                releaseKey()
+                delay(40.milliseconds)
+            }
+            AirControlAppWidget.updateAll()
+            CarDataBusDataObserver.notifyDataChanged()
+        }
+    }
+
+    /** 温度直接调到最高 (HI) **/
+    fun setTempMax() = setTempTo(TEMP_MAX)
+
+    /** 温度直接调到最低 (LO) **/
+    fun setTempMin() = setTempTo(TEMP_MIN)
 
     fun setWindLevel(level: Int) {
         val v = level.coerceIn(WIND_MIN, WIND_MAX)

@@ -1,0 +1,4 @@
+- 空调指令=6字节按键模拟帧（勿改单 opcode！单 opcode 是其他车型分支格式）：b0 0x80电源/0x02AC/0x10前除雾/0x40风向/0x20AUTO；b1 高4位风量/0x04后除雾；b2 0x01循环；b3 0x02温+/0x01温-；按下100ms后补发全零释放帧
+- 权威参考：/tmp/stockapk/canbus-src/sources/com/syu/carinfo/jili/YuanJingX1AirControlAct.java（本车型专属空调界面）
+- 实车（帝豪22款尊贵版）无 AUTO、后除雾（后窗除雾）功能：UI（主界面+小组件）勿再添加入口；AirController 协议方法 toggleAuto/toggleRearDefrost 保留但不挂 UI
+- 小组件温度字号按文案长度+可用宽度动态收缩（0.62f/字符估算），防浮点温度（26.5°）把 LO/HI 挤出组件；过窄时隐藏 LO/HI
