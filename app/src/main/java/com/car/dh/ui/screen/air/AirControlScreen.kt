@@ -1,6 +1,5 @@
 package com.car.dh.ui.screen.air
 
-import android.content.res.Configuration
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -11,8 +10,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,16 +26,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,10 +75,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
         }
         val windLevel = airStateInfo.windLevel
         val isAcOn = airStateInfo.isAcOn
-        val windCycle = airStateInfo.cycle
-        val modeLabels = listOf("吹面", "吹体", "吹脚", "吹脚+除霜", "吹面+吹脚")
-        var modeIndex by remember { mutableIntStateOf(0) }
-        val modeLabel = modeLabels[modeIndex]
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,15 +95,9 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                         .padding(horizontal = 20.dp, vertical = 20.dp),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    Column(Modifier.fillMaxSize()) {
-                        val isLandscape =
-                            LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                    Column(modifier = Modifier.fillMaxSize()) {
                         TemperaturePanel(
                             modifier = Modifier
-                                .run {
-                                    if (!isLandscape) this
-                                    else padding(horizontal = 50.dp)
-                                }
                                 .fillMaxWidth()
                                 .weight(1f),
                             active = airStateInfo.isPower,
@@ -119,9 +108,122 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             onSetMax = viewModel::setTempMax,
                             onRelease = viewModel::releaseKey,
                         )
-                        HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 6.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = isPowerOn,
+                                activeIcon = R.drawable.ic_air_power_status_on,
+                                inactiveIcon = R.drawable.ic_air_power_status_off,
+                                onPress = viewModel::togglePower,
+                                onRelease = viewModel::releaseKey,
+                            )
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 6.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = isPowerOn && isAcOn,
+                                activeIcon = R.drawable.ic_air_ac_status_on,
+                                inactiveIcon = R.drawable.ic_air_ac_status_off,
+                                onPress = viewModel::toggleAc,
+                                onRelease = viewModel::releaseKey,
+                            )
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 6.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = isPowerOn && airStateInfo.cycle == 1,
+                                activeIcon = when {
+                                    airStateInfo.cycle == 1 ->
+                                        R.drawable.ic_air_mode_in_cycle
+
+                                    else -> R.drawable.ic_air_mode_out_cycle
+                                },
+                                onPress = viewModel::toggleCycle,
+                                onRelease = viewModel::releaseKey,
+                            )
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 8.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = isPowerOn &&
+                                        airStateInfo.frontDefrost == 1,
+                                activeIcon = R.drawable.ic_air_front_defrost,
+                                onPress = viewModel::toggleFrontDefrost,
+                                onRelease = viewModel::releaseKey,
+                            )
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 6.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = isPowerOn &&
+                                        (airStateInfo.modeBody == 1 ||
+                                                airStateInfo.modeUp == 1 ||
+                                                airStateInfo.modeFoot == 1),
+                                activeIcon = when {
+                                    airStateInfo.modeUp == 1 ->
+                                        R.drawable.ic_air_dir_face
+
+                                    airStateInfo.modeBody == 1 ->
+                                        R.drawable.ic_air_dir_body
+
+                                    airStateInfo.modeFoot == 1 ->
+                                        R.drawable.ic_air_dir_foot
+
+                                    else -> R.drawable.ic_air_dir_frost
+                                },
+                                onPress = { viewModel.toggleMode() },
+                                onRelease = viewModel::releaseKey,
+                            )
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 6.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = false,
+                                activeIcon = R.drawable.ic_air_settings,
+                                onRelease = {},
+                                onPress = { viewModel.isAirSettingDialogVisible = true }
+                            )
+                            ImageButton(
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(
+                                    vertical = 6.dp,
+                                    horizontal = 12.dp
+                                ),
+                                backgroundShape = RoundedCornerShape(12.dp),
+                                active = false,
+                                activeIcon = R.drawable.ic_back_home,
+                                onRelease = {},
+                                onPress = { ActivityLaunch.backHomeDesktop() }
+                            )
+                        }
+                        HorizontalDivider(
+                            modifier = Modifier.padding(top = 12.dp),
+                            color = Color.DarkGray.copy(alpha = 0.5f)
+                        )
                         WindPanel(
-                            modifier = Modifier.padding(top = 20.dp),
                             active = isPowerOn,
                             level = windLevel,
                             onChangeWindLevel = viewModel::setWindLevel,
@@ -129,110 +231,9 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             onDownPress = viewModel::decrementWindLevel,
                             onRelease = viewModel::releaseKey
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            FunctionButton(
-                                modifier = Modifier.weight(1f),
-                                label = when (windCycle) {
-                                    0 -> "外循环"
-                                    1 -> "内循环"
-                                    else -> "自动"
-                                },
-                                active = isPowerOn && isAcOn,
-                                onPress = viewModel::toggleCycle,
-                                onRelease = viewModel::releaseKey,
-                            )
-                            FunctionButton(
-                                modifier = Modifier.weight(1f),
-                                label = "前除霜",
-                                active = isPowerOn &&
-                                        airStateInfo.frontDefrost == 1,
-                                onPress = viewModel::toggleFrontDefrost,
-                                onRelease = viewModel::releaseKey,
-                            )
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            FunctionButton(
-                                modifier = Modifier.weight(1f),
-                                label = modeLabel,
-                                active = isPowerOn &&
-                                        (airStateInfo.modeBody == 1 ||
-                                                airStateInfo.modeUp == 1 ||
-                                                airStateInfo.modeFoot == 1),
-                                onPress = {
-                                    modeIndex = (modeIndex + 1) % modeLabels.size
-                                    viewModel.toggleMode()
-                                },
-                                onRelease = viewModel::releaseKey,
-                            )
-                            Image(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(DHCarInfoTheme.inactive)
-                                    .size(56.dp)
-                                    .clickable { viewModel.isAirSettingDialogVisible = true }
-                                    .padding(12.dp),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                painter = painterResource(R.drawable.ic_air_settings)
-                            )
-                            Image(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(DHCarInfoTheme.inactive)
-                                    .size(56.dp)
-                                    .clickable { ActivityLaunch.backHomeDesktop() }
-                                    .padding(12.dp),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                painter = painterResource(R.drawable.ic_back_home)
-                            )
-                        }
                     }
                 }
             }
-            ImageButton(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isPowerOn && isAcOn)
-                            DHCarInfoTheme.accent
-                        else DHCarInfoTheme.inactive
-                    )
-                    .size(46.dp)
-                    .padding(8.dp),
-                active = isPowerOn && isAcOn,
-                activeIcon = R.drawable.ic_air_ac_status_on,
-                inactiveIcon = R.drawable.ic_air_ac_status_off,
-                onPress = viewModel::toggleAc,
-                onRelease = viewModel::releaseKey,
-            )
-            ImageButton(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isPowerOn)
-                            DHCarInfoTheme.accent
-                        else DHCarInfoTheme.inactive
-                    )
-                    .size(46.dp)
-                    .padding(8.dp),
-                active = isPowerOn,
-                activeIcon = R.drawable.ic_air_power_status_on,
-                inactiveIcon = R.drawable.ic_air_power_status_off,
-                onPress = viewModel::togglePower,
-                onRelease = viewModel::releaseKey,
-            )
         }
         AirSettingsDialog(isVisible = uiState.isAirSettingsDialogVisible) {
             viewModel.isAirSettingDialogVisible = false
@@ -242,6 +243,7 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
 
 @Composable
 private fun TemperaturePanel(
+    modifier: Modifier = Modifier,
     temp: Float,
     active: Boolean,
     onTempUp: () -> Unit,
@@ -249,49 +251,40 @@ private fun TemperaturePanel(
     onSetMin: () -> Unit = {},
     onSetMax: () -> Unit = {},
     onRelease: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = Modifier
+            .then(modifier)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(text = "温度", color = DHCarInfoTheme.subText, fontSize = 13.sp)
-        Spacer(Modifier.height(4.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            TempExtremeButton(
-                label = "LO",
-                atExtreme = AcAirTempUtils.formatTemp(temp) == "LO",
-                enabled = active,
-                onClick = onSetMin
+            ImageButton(
+                modifier = Modifier.size(42.dp),
+                backgroundShape = CircleShape,
+                onPress = onTempDown,
+                onRelease = onRelease,
+                active = active,
+                activeIcon = R.drawable.ic_data_decrement,
+                inactiveIcon = R.drawable.ic_data_decrement_inactive
             )
-            Column(
-                modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                ImageButton(
-                    modifier = Modifier.size(42.dp),
-                    onPress = onTempDown,
-                    onRelease = onRelease,
-                    active = active,
-                    activeIcon = R.drawable.ic_data_decrement,
-                    inactiveIcon = R.drawable.ic_data_decrement_inactive
-                )
-                ImageButton(
-                    modifier = Modifier.size(42.dp),
-                    onPress = onTempUp,
-                    onRelease = onRelease,
-                    active = active,
-                    activeIcon = R.drawable.ic_data_increment,
-                    inactiveIcon = R.drawable.ic_data_increment_inactive
-                )
-            }
+            ImageButton(
+                modifier = Modifier.size(42.dp),
+                backgroundShape = CircleShape,
+                onPress = onTempUp,
+                onRelease = onRelease,
+                active = active,
+                activeIcon = R.drawable.ic_data_increment,
+                inactiveIcon = R.drawable.ic_data_increment_inactive
+            )
+        }
+        Box(Modifier.weight(1f), Alignment.Center) {
             Row(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
@@ -309,32 +302,42 @@ private fun TemperaturePanel(
                     color = DHCarInfoTheme.subText
                 )
             }
-            Column(
-                modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                ImageButton(
-                    modifier = Modifier.size(42.dp),
-                    onPress = onTempDown,
-                    onRelease = onRelease,
-                    active = active,
-                    activeIcon = R.drawable.ic_data_decrement,
-                    inactiveIcon = R.drawable.ic_data_decrement_inactive
-                )
-                ImageButton(
-                    modifier = Modifier.size(42.dp),
-                    onPress = onTempUp,
-                    onRelease = onRelease,
-                    active = active,
-                    activeIcon = R.drawable.ic_data_increment,
-                    inactiveIcon = R.drawable.ic_data_increment_inactive,
-                )
-            }
             TempExtremeButton(
+                modifier = Modifier.align(Alignment.CenterStart),
+                label = "LO",
+                atExtreme = AcAirTempUtils.formatTemp(temp) == "LO",
+                enabled = active,
+                onClick = onSetMin
+            )
+            TempExtremeButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
                 label = "HI",
                 atExtreme = AcAirTempUtils.formatTemp(temp) == "HI",
                 enabled = active,
                 onClick = onSetMax
+            )
+        }
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            ImageButton(
+                modifier = Modifier.size(42.dp),
+                backgroundShape = CircleShape,
+                onPress = onTempDown,
+                onRelease = onRelease,
+                active = active,
+                activeIcon = R.drawable.ic_data_decrement,
+                inactiveIcon = R.drawable.ic_data_decrement_inactive
+            )
+            ImageButton(
+                modifier = Modifier.size(42.dp),
+                backgroundShape = CircleShape,
+                onPress = onTempUp,
+                onRelease = onRelease,
+                active = active,
+                activeIcon = R.drawable.ic_data_increment,
+                inactiveIcon = R.drawable.ic_data_increment_inactive,
             )
         }
     }
@@ -343,6 +346,7 @@ private fun TemperaturePanel(
 /** LO / HI 温度极值快捷按钮：温度到达对应极值时高亮 **/
 @Composable
 private fun TempExtremeButton(
+    modifier: Modifier = Modifier,
     label: String,
     atExtreme: Boolean,
     enabled: Boolean,
@@ -355,6 +359,7 @@ private fun TempExtremeButton(
     )
     Box(
         modifier = Modifier
+            .then(modifier)
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
             .size(width = 44.dp, height = 28.dp)
@@ -390,6 +395,17 @@ private fun WindPanel(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        ImageButton(
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .size(42.dp),
+            backgroundShape = CircleShape,
+            onPress = onDownPress,
+            onRelease = onRelease,
+            active = active,
+            activeIcon = R.drawable.ic_data_decrement,
+            inactiveIcon = R.drawable.ic_data_decrement_inactive,
+        )
         Text("风量", color = DHCarInfoTheme.subText, fontSize = 18.sp)
         Row(
             modifier = Modifier.weight(1f),
@@ -413,26 +429,9 @@ private fun WindPanel(
                 )
             }
         }
-        // Text(
-        //     text = level.toString(),
-        //     color = DHCarInfoTheme.text,
-        //     fontSize = 18.sp,
-        //     fontWeight = FontWeight.Bold,
-        //     modifier = Modifier.width(22.dp),
-        //     textAlign = TextAlign.Center
-        // )
-        ImageButton(
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .size(42.dp),
-            onPress = onDownPress,
-            onRelease = onRelease,
-            active = active,
-            activeIcon = R.drawable.ic_data_decrement,
-            inactiveIcon = R.drawable.ic_data_decrement_inactive,
-        )
         ImageButton(
             modifier = Modifier.size(42.dp),
+            backgroundShape = CircleShape,
             onPress = onUpPress,
             onRelease = onRelease,
             active = active,
@@ -442,32 +441,56 @@ private fun WindPanel(
     }
 }
 
+/**
+ * 图标按钮
+ * @param modifier 修饰器
+ * @param active 是否被激活
+ * @param activeIcon 激活图标
+ * @param inactiveIcon 未激活状态图标
+ * @param onPress 按下事件
+ * @param onRelease 释放按钮事件
+ * @param contentPadding 内容边距
+ */
 @Composable
 private fun ImageButton(
     modifier: Modifier = Modifier,
     active: Boolean,
     @DrawableRes activeIcon: Int,
     @DrawableRes inactiveIcon: Int? = null,
+    backgroundShape: Shape? = null,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onPress: () -> Unit,
     onRelease: () -> Unit,
 ) {
     Image(
         modifier = Modifier
             .then(modifier)
-            .pressRelease(onPress, onRelease),
+            .run {
+                if (backgroundShape == null) this
+                else clip(backgroundShape)
+            }
+            .background(
+                color = if (active)
+                    DHCarInfoTheme.accent
+                else DHCarInfoTheme.inactive,
+                shape = backgroundShape ?: RectangleShape
+            )
+            .pressRelease(onPress, onRelease)
+            .padding(contentPadding),
         contentDescription = null,
         contentScale = ContentScale.Fit,
+        colorFilter = ColorFilter.tint(Color.White),
         painter = painterResource(if (active || inactiveIcon == null) activeIcon else inactiveIcon)
     )
 }
 
 @Composable
 private fun FunctionButton(
-    label: String,
+    modifier: Modifier = Modifier,
+    label: String = "",
     active: Boolean,
     onPress: () -> Unit,
     onRelease: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     val bg by animateColorAsState(
         label = "fnBg",
@@ -476,21 +499,23 @@ private fun FunctionButton(
     )
     Box(
         modifier = modifier
-            .height(56.dp)
+            .height(52.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
             .pressRelease(onPress, onRelease),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = label,
-            color = when {
-                active -> Color.Black
-                else -> DHCarInfoTheme.text
-            },
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium
-        )
+        if (label.trim().isNotEmpty()) {
+            Text(
+                text = label,
+                color = when {
+                    active -> Color.Black
+                    else -> DHCarInfoTheme.text
+                },
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
 }
 
