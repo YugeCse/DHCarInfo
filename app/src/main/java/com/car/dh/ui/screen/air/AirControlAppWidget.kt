@@ -152,11 +152,10 @@ private fun AirControlAppWidgetContent(
         val windBtnSize = (width * 0.11f).coerceIn(34.dp, 46.dp)
         val pillHeight = (width * 0.16f).coerceIn(52.dp, 64.dp)
         val pillBtnSize = (width * 0.10f).coerceIn(32.dp, 42.dp)
-        val pillValueFontSize = (width.value * 0.055f).coerceIn(15f, 22f).sp
+        val pillValueFontSize = (width.value * 0.105f).coerceIn(15f, 22f).sp
         // 温度文案：到极值时自动显示 LO / HI
         val tempTextLeft = formatTemp(tempLeft)
         val tempTextRight = formatTemp(tempRight)
-
         Box(
             modifier = GlanceModifier
                 .cornerRadius(WidgetUiCompat.backgroundRadius(context))
@@ -168,44 +167,6 @@ private fun AirControlAppWidgetContent(
                 .padding(outerPadding)
         ) {
             Column(modifier = GlanceModifier.fillMaxSize()) {
-                // 顶栏：电源（左） + A/C（右）。（实车无 AUTO 功能，不放置入口）
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ImageButton(
-                        modifier = GlanceModifier
-                            .background(
-                                ImageProvider(
-                                    if (isPowerOn) R.drawable.bg_circle_btn_active
-                                    else R.drawable.bg_circle_btn_inactive
-                                )
-                            )
-                            .size(cornerBtnSize)
-                            .padding(cornerBtnSize * 0.22f),
-                        active = isPowerOn,
-                        onClick = airController::togglePower,
-                        activeIcon = R.drawable.ic_air_power_status_on,
-                        inactiveIcon = R.drawable.ic_air_power_status_off,
-                    )
-                    Spacer(GlanceModifier.defaultWeight())
-                    ImageButton(
-                        modifier = GlanceModifier
-                            .background(
-                                ImageProvider(
-                                    if (isAcOn) R.drawable.bg_circle_btn_active
-                                    else R.drawable.bg_circle_btn_inactive
-                                )
-                            )
-                            .size(cornerBtnSize)
-                            .padding(cornerBtnSize * 0.22f),
-                        active = isAcOn,
-                        onClick = airController::toggleAc,
-                        activeIcon = R.drawable.ic_air_ac_status_on,
-                        inactiveIcon = R.drawable.ic_air_ac_status_off,
-                    )
-                }
                 // 中央：功能排 → 风量排 → 双温度胶囊；行间距统一 12dp，
                 // 剩余高度平均分给上下（内容垂直居中），避免某两排间距异常大
                 Column(
@@ -214,6 +175,83 @@ private fun AirControlAppWidgetContent(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Spacer(GlanceModifier.defaultWeight())
+                    // 双温度胶囊：BYD 原味，值到极值时显示 LO / HI
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TempStepperPill(
+                            modifier = GlanceModifier.defaultWeight(),
+                            height = pillHeight,
+                            btnSize = pillBtnSize,
+                            valueFontSize = pillValueFontSize,
+                            valueText = tempTextLeft,
+                            valueColor = ColorProvider(
+                                if (isPowerOn) globalConfig.airAppWidgetTempTextColor
+                                else globalConfig.airAppWidgetSubTextColor
+                            ),
+                            enabled = isPowerOn,
+                            onDecrease = airController::decreaseTemp,
+                            onIncrease = airController::increaseTemp,
+                        )
+                    }
+                    Spacer(GlanceModifier.defaultWeight())
+                    // 风量排：− 阶梯条 ＋，位于温控胶囊上一排
+                    Row(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                            .height(pillHeight)
+                            .background(ImageProvider(R.drawable.bg_pill))
+                            .padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ImageButton(
+                            modifier = GlanceModifier
+                                .background(
+                                    ImageProvider(
+                                        if (isPowerOn) R.drawable.bg_btn_active
+                                        else R.drawable.bg_btn_inactive
+                                    )
+                                )
+                                .size(pillBtnSize)
+                                .padding(pillBtnSize * 0.22f),
+                            active = isPowerOn,
+                            onClick = {
+                                if (isPowerOn) airController.setWindLevel(windLevel - 1)
+                            },
+                            activeIcon = R.drawable.ic_widget_minus,
+                        )
+                        WindLevelBar(
+                            modifier = GlanceModifier
+                                .defaultWeight()
+                                .padding(horizontal = 6.dp),
+                            level = if (isPowerOn) windLevel else 0,
+                            maxLevel = AirController.WIND_MAX,
+                            activeColor = globalConfig.airAppWidgetMarkOvalSelectColor,
+                            inactiveColor = globalConfig.airAppWidgetMarkOvalColor,
+                            onLevelClick = { level ->
+                                if (isPowerOn) airController.setWindLevel(level)
+                            },
+                        )
+                        ImageButton(
+                            modifier = GlanceModifier
+                                .background(
+                                    ImageProvider(
+                                        if (isPowerOn) R.drawable.bg_btn_active
+                                        else R.drawable.bg_btn_inactive
+                                    )
+                                )
+                                .size(pillBtnSize)
+                                .padding(pillBtnSize * 0.22f),
+                            active = isPowerOn,
+                            onClick = {
+                                if (isPowerOn) airController.setWindLevel(windLevel + 1)
+                            },
+                            activeIcon = R.drawable.ic_widget_plus,
+                        )
+                    }
                     Spacer(GlanceModifier.defaultWeight())
                     // 功能按键排
                     Row(
@@ -267,6 +305,53 @@ private fun AirControlAppWidgetContent(
                         Spacer(GlanceModifier.defaultWeight())
                         FunctionTile(
                             size = tileBtnSize,
+                            title = "A/C",
+                            titleColor = globalConfig.airAppWidgetSubTextColor,
+                            selected = isAcOn,
+                            icon = if (isAcOn)
+                                R.drawable.ic_air_ac_status_on
+                            else R.drawable.ic_air_ac_status_off,
+                            onClick = airController::toggleFrontDefrost,
+                        )
+                    }
+                    Spacer(GlanceModifier.defaultWeight())
+                    // 顶栏：电源（左） + A/C（右）。（实车无 AUTO 功能，不放置入口）
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FunctionTile(
+                            size = tileBtnSize,
+                            title = "开关",
+                            titleColor = globalConfig.airAppWidgetSubTextColor,
+                            selected = isPowerOn,
+                            icon = if (isPowerOn)
+                                R.drawable.ic_air_power_status_on
+                            else R.drawable.ic_air_power_status_off,
+                            onClick = airController::toggleFrontDefrost,
+                        )
+                        Spacer(GlanceModifier.defaultWeight())
+                        FunctionTile(
+                            size = tileBtnSize,
+                            title = "MAX",
+                            titleColor = globalConfig.airAppWidgetSubTextColor,
+                            selected = isPowerOn,
+                            icon = R.drawable.ic_air_wind_max,
+                            onClick = { airController.setWindLevel(1) },
+                        )
+                        Spacer(GlanceModifier.defaultWeight())
+                        FunctionTile(
+                            size = tileBtnSize,
+                            title = "MIN",
+                            titleColor = globalConfig.airAppWidgetSubTextColor,
+                            selected = isPowerOn,
+                            icon = R.drawable.ic_air_wind_min,
+                            onClick = { airController.setWindLevel(AirController.WIND_MAX) },
+                        )
+                        Spacer(GlanceModifier.defaultWeight())
+                        FunctionTile(
+                            size = tileBtnSize,
                             title = "APP",
                             titleColor = globalConfig.airAppWidgetSubTextColor,
                             selected = false,
@@ -274,134 +359,10 @@ private fun AirControlAppWidgetContent(
                             onClick = { ActivityLaunch.openSelfApp() },
                         )
                     }
-                    Spacer(GlanceModifier.height(12.dp))
-                    Spacer(GlanceModifier.defaultWeight())
-                    // 风量排：− 阶梯条 ＋，位于温控胶囊上一排
-                    Row(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                            .padding(horizontal = tempBtnSpacing),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ImageButton(
-                            modifier = GlanceModifier
-                                .background(
-                                    ImageProvider(
-                                        if (isPowerOn) R.drawable.bg_btn_active
-                                        else R.drawable.bg_btn_inactive
-                                    )
-                                )
-                                .size(windBtnSize)
-                                .padding(windBtnSize * 0.22f),
-                            active = isPowerOn,
-                            onClick = {
-                                if (isPowerOn) airController.setWindLevel(windLevel - 1)
-                            },
-                            activeIcon = R.drawable.ic_widget_minus,
-                        )
-                        WindLevelBar(
-                            modifier = GlanceModifier
-                                .defaultWeight()
-                                .padding(horizontal = 6.dp),
-                            level = if (isPowerOn) windLevel else 0,
-                            maxLevel = AirController.WIND_MAX,
-                            activeColor = globalConfig.airAppWidgetMarkOvalSelectColor,
-                            inactiveColor = globalConfig.airAppWidgetMarkOvalColor,
-                            onLevelClick = { level ->
-                                if (isPowerOn) airController.setWindLevel(level)
-                            },
-                        )
-                        ImageButton(
-                            modifier = GlanceModifier
-                                .background(
-                                    ImageProvider(
-                                        if (isPowerOn) R.drawable.bg_btn_active
-                                        else R.drawable.bg_btn_inactive
-                                    )
-                                )
-                                .size(windBtnSize)
-                                .padding(windBtnSize * 0.22f),
-                            active = isPowerOn,
-                            onClick = {
-                                if (isPowerOn) airController.setWindLevel(windLevel + 1)
-                            },
-                            activeIcon = R.drawable.ic_widget_plus,
-                        )
-                    }
-                    Spacer(GlanceModifier.height(12.dp))
-                    Spacer(GlanceModifier.defaultWeight())
-                    // 双温度胶囊：BYD 原味，值到极值时显示 LO / HI
-                    Row(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TempStepperPill(
-                            modifier = GlanceModifier.defaultWeight(),
-                            height = pillHeight,
-                            btnSize = pillBtnSize,
-                            valueFontSize = pillValueFontSize,
-                            valueText = tempTextLeft,
-                            valueColor = ColorProvider(
-                                if (isPowerOn) globalConfig.airAppWidgetTempTextColor
-                                else globalConfig.airAppWidgetSubTextColor
-                            ),
-                            enabled = isPowerOn,
-                            onDecrease = airController::decreaseTemp,
-                            onIncrease = airController::increaseTemp,
-                        )
-                        Spacer(GlanceModifier.width(10.dp))
-                        TempStepperPill(
-                            modifier = GlanceModifier.defaultWeight(),
-                            height = pillHeight,
-                            btnSize = pillBtnSize,
-                            valueFontSize = pillValueFontSize,
-                            valueText = tempTextRight,
-                            valueColor = ColorProvider(
-                                if (isPowerOn) globalConfig.airAppWidgetTempTextColor
-                                else globalConfig.airAppWidgetSubTextColor
-                            ),
-                            enabled = isPowerOn,
-                            onDecrease = airController::decreaseTemp,
-                            onIncrease = airController::increaseTemp,
-                        )
-                    }
-                    Spacer(GlanceModifier.defaultWeight())
                 }
             }
         }
     }
-}
-
-/** 底部功能开关块 **/
-@Composable
-@SuppressLint("RestrictedApi")
-private fun FunctionTile(
-    size: Dp,
-    title: String,
-    titleColor: Color,
-    selected: Boolean,
-    icon: Int,
-    onClick: () -> Unit,
-) {
-    ImageButton(
-        modifier = GlanceModifier
-            .background(
-                ImageProvider(
-                    if (selected) R.drawable.bg_btn_active
-                    else R.drawable.bg_btn_inactive
-                )
-            )
-            .size(size)
-            .padding(size * 0.17f),
-        title = title,
-        titleColor = titleColor,
-        active = true,
-        activeIcon = icon,
-        onClick = onClick,
-    )
 }
 
 /** 风量档位条：业内常见的阶梯高度条样式，高度随档位递增；点击档位设置对应风量 **/
@@ -421,7 +382,8 @@ private fun WindLevelBar(
     ) {
         repeat(maxLevel) { index ->
             val barHeight =
-                6.dp + 12.dp * (index.toFloat() / (maxLevel - 1).coerceAtLeast(1))
+                6.dp + 12.dp * (index.toFloat() / (maxLevel - 1)
+                    .coerceAtLeast(1))
             // 外层为 24dp 高的透明触控区，避免档位条太矮点不中
             Box(
                 modifier = GlanceModifier
@@ -475,8 +437,9 @@ private fun TempStepperPill(
             modifier = GlanceModifier
                 .background(
                     ImageProvider(
-                        if (enabled) R.drawable.bg_circle_btn_active
-                        else R.drawable.bg_circle_btn_inactive
+                        if (enabled)
+                            R.drawable.bg_btn_active
+                        else R.drawable.bg_btn_inactive
                     )
                 )
                 .size(btnSize)
@@ -500,8 +463,9 @@ private fun TempStepperPill(
             modifier = GlanceModifier
                 .background(
                     ImageProvider(
-                        if (enabled) R.drawable.bg_circle_btn_active
-                        else R.drawable.bg_circle_btn_inactive
+                        if (enabled)
+                            R.drawable.bg_btn_active
+                        else R.drawable.bg_btn_inactive
                     )
                 )
                 .size(btnSize)
@@ -512,6 +476,35 @@ private fun TempStepperPill(
         )
         Spacer(GlanceModifier.width(6.dp))
     }
+}
+
+/** 底部功能开关块 **/
+@Composable
+@SuppressLint("RestrictedApi")
+private fun FunctionTile(
+    size: Dp,
+    title: String,
+    titleColor: Color,
+    selected: Boolean,
+    icon: Int,
+    onClick: () -> Unit,
+) {
+    ImageButton(
+        modifier = GlanceModifier
+            .background(
+                ImageProvider(
+                    if (selected) R.drawable.bg_btn_active
+                    else R.drawable.bg_btn_inactive
+                )
+            )
+            .size(size)
+            .padding(size * 0.17f),
+        title = title,
+        titleColor = titleColor,
+        active = true,
+        activeIcon = icon,
+        onClick = onClick,
+    )
 }
 
 /** 温度文案：与车机端一致，极值显示 LO/HI **/
