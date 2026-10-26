@@ -152,7 +152,7 @@ private fun AirControlAppWidgetContent(
         val windBtnSize = (width * 0.11f).coerceIn(34.dp, 46.dp)
         val pillHeight = (width * 0.16f).coerceIn(52.dp, 64.dp)
         val pillBtnSize = (width * 0.10f).coerceIn(32.dp, 42.dp)
-        val pillValueFontSize = (width.value * 0.105f).coerceIn(15f, 22f).sp
+        val pillValueFontSize = (width.value * 0.305f).coerceIn(15f, 28f).sp
         // 温度文案：到极值时自动显示 LO / HI
         val tempTextLeft = formatTemp(tempLeft)
         val tempTextRight = formatTemp(tempRight)
@@ -211,7 +211,8 @@ private fun AirControlAppWidgetContent(
                             modifier = GlanceModifier
                                 .background(
                                     ImageProvider(
-                                        if (isPowerOn) R.drawable.bg_btn_active
+                                        if (isPowerOn)
+                                            R.drawable.bg_btn_active
                                         else R.drawable.bg_btn_inactive
                                     )
                                 )
@@ -239,7 +240,8 @@ private fun AirControlAppWidgetContent(
                             modifier = GlanceModifier
                                 .background(
                                     ImageProvider(
-                                        if (isPowerOn) R.drawable.bg_btn_active
+                                        if (isPowerOn)
+                                            R.drawable.bg_btn_active
                                         else R.drawable.bg_btn_inactive
                                     )
                                 )
