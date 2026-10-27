@@ -11,7 +11,7 @@ class BootReceiver : BroadcastReceiver() {
 
     @SuppressLint("UnsafeProtectedBroadcastReceiver")
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (intent?.action !in WidgetBootUpdater.BOOT_ACTIONS) return
+        // if (intent?.action !in WidgetBootUpdater.BOOT_ACTIONS) return
         context?.let { WidgetBootUpdater.updateAllAppWidgets(context) }
     }
 

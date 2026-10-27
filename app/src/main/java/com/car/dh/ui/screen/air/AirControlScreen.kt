@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
@@ -108,9 +110,30 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                             onSetMax = viewModel::setTempMax,
                             onRelease = viewModel::releaseKey,
                         )
+                        WindPanel(
+                            active = isPowerOn,
+                            level = windLevel,
+                            onChangeWindLevel = viewModel::setWindLevel,
+                            onUpPress = viewModel::incrementWindLevel,
+                            onDownPress = viewModel::decrementWindLevel,
+                            onRelease = viewModel::releaseKey
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(bottom = 12.dp),
+                            color = Color.DarkGray.copy(alpha = 0.5f)
+                        )
+                        val scrollState = rememberScrollState()
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(scrollState),
+                            horizontalArrangement = when {
+                                scrollState.maxValue > 0f ->
+                                    Arrangement
+                                        .spacedBy(12.dp, Alignment.CenterHorizontally)
+
+                                else -> Arrangement.SpaceBetween
+                            }
                         ) {
                             ImageButton(
                                 modifier = Modifier.size(56.dp),
@@ -219,18 +242,6 @@ fun AirControlScreen(modifier: Modifier = Modifier) {
                                 onPress = { ActivityLaunch.backHomeDesktop() }
                             )
                         }
-                        HorizontalDivider(
-                            modifier = Modifier.padding(top = 12.dp),
-                            color = Color.DarkGray.copy(alpha = 0.5f)
-                        )
-                        WindPanel(
-                            active = isPowerOn,
-                            level = windLevel,
-                            onChangeWindLevel = viewModel::setWindLevel,
-                            onUpPress = viewModel::incrementWindLevel,
-                            onDownPress = viewModel::decrementWindLevel,
-                            onRelease = viewModel::releaseKey
-                        )
                     }
                 }
             }
@@ -398,13 +409,14 @@ private fun WindPanel(
         ImageButton(
             modifier = Modifier
                 .padding(end = 8.dp)
-                .size(42.dp),
-            backgroundShape = CircleShape,
+                .size(46.dp),
+            contentPadding = PaddingValues(2.dp),
+            backgroundShape = RoundedCornerShape(12.dp),
             onPress = onDownPress,
             onRelease = onRelease,
             active = active,
-            activeIcon = R.drawable.ic_data_decrement,
-            inactiveIcon = R.drawable.ic_data_decrement_inactive,
+            activeIcon = R.drawable.ic_widget_minus,
+            inactiveIcon = R.drawable.ic_widget_minus,
         )
         Text("风量", color = DHCarInfoTheme.subText, fontSize = 18.sp)
         Row(
@@ -430,13 +442,14 @@ private fun WindPanel(
             }
         }
         ImageButton(
-            modifier = Modifier.size(42.dp),
-            backgroundShape = CircleShape,
+            modifier = Modifier.size(46.dp),
+            contentPadding = PaddingValues(2.dp),
+            backgroundShape = RoundedCornerShape(12.dp),
             onPress = onUpPress,
             onRelease = onRelease,
             active = active,
-            activeIcon = R.drawable.ic_data_increment,
-            inactiveIcon = R.drawable.ic_data_increment_inactive,
+            activeIcon = R.drawable.ic_widget_plus,
+            inactiveIcon = R.drawable.ic_widget_plus,
         )
     }
 }
