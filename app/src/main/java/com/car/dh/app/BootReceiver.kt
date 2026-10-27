@@ -12,7 +12,8 @@ class BootReceiver : BroadcastReceiver() {
     @SuppressLint("UnsafeProtectedBroadcastReceiver")
     override fun onReceive(context: Context?, intent: Intent?) {
         // if (intent?.action !in WidgetBootUpdater.BOOT_ACTIONS) return
-        context?.let { WidgetBootUpdater.updateAllAppWidgets(context) }
+        // 传入 this 让更新任务通过 goAsync 保活，避免 onReceive 返回后进程被回收
+        context?.let { WidgetBootUpdater.updateAllAppWidgets(it, this) }
     }
 
 }

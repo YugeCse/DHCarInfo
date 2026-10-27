@@ -7,13 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.car.dh.ui.screen.widget.AirControlAppWidget
-import com.car.dh.ui.screen.widget.AirControlAppWidget.Companion.updateAll
 import com.car.dh.ui.screen.widget.CarControlAppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
+
 
 /** 小组件开机自恢复工具 **/
 object WidgetBootUpdater {
@@ -26,8 +26,11 @@ object WidgetBootUpdater {
         Intent.ACTION_REBOOT,
     )
 
-    private const val RETRY_INTERVAL_MS = 5_000L
+    private const val RETRY_INTERVAL_MS = 3_000L
     private const val MAX_RETRY_COUNT = 12
+
+    /** 桌面绑定分多批完成，绑定成功后追加几轮刷新，覆盖晚绑定的情况 **/
+    private val EXTRA_REFRESH_DELAYS_MS = longArrayOf(2_000L, 5_000L, 10_000L)
 
     /**
      * 开机后恢复小组件真实界面。
@@ -37,53 +40,75 @@ object WidgetBootUpdater {
      * 界面就会停留在 previewImage 预览图。
      *
      * 这里先立即尝试一次刷新，然后轮询等待桌面绑定恢复
-     * （AppWidgetManager 中能查到 widget id）后再刷新一次，最多约 1 分钟。
-     * 通过 goAsync 保持接收器进程存活直到轮询结束。
+     * （AppWidgetManager 中能查到 widget id）后再刷新，
+     * 并通过 goAsync 保持接收器进程存活直到轮询结束
+     * （不加 goAsync 时 onReceive 返回后进程随时可能被回收，轮询根本跑不完）。
+     *
+     * @param receiver 触发本次更新的广播接收器，用于 goAsync 保活，可为空
      */
     fun updateAfterBoot(
+        receiver: BroadcastReceiver? = null,
         context: Context,
         widgetClass: Class<*>,
         updateAll: suspend () -> Unit,
     ) {
-        val appContext = context.applicationContext
         CoroutineScope(Dispatchers.Default).launch {
+            val pendingResult = runCatching { receiver?.goAsync() }.getOrNull()
+            val appContext = context.applicationContext
             try {
                 runCatching { updateAll() }
                 var attempts = 0
                 while (attempts < MAX_RETRY_COUNT) {
                     delay(RETRY_INTERVAL_MS.milliseconds)
-                    val ids = runCatching {
-                        AppWidgetManager.getInstance(appContext)
-                            .getAppWidgetIds(ComponentName(appContext, widgetClass))
-                    }.getOrNull()
-                    if (ids != null && ids.isNotEmpty()) {
+                    attempts++
+                    val ids = widgetIds(appContext, widgetClass)
+                    if (ids == null || ids.isEmpty()) continue
+                    // 桌面已恢复绑定：先刷新一次，再追加几轮刷新覆盖晚绑定
+                    CarDataBusDataObserver.notifyDataChanged()
+                    runCatching { updateAll() }
+                    EXTRA_REFRESH_DELAYS_MS.forEach { delayMs ->
+                        delay(delayMs.milliseconds)
                         CarDataBusDataObserver.notifyDataChanged()
                         runCatching { updateAll() }
-                        break
                     }
-                    attempts++
+                    break
                 }
             } catch (e: Exception) {
-                Log.e("updateAfterBoot", "抱歉，更新小组件失败：${e.message}")
+                Log.e("WidgetBootUpdater", "小组件开机恢复失败：${e.message}")
+            } finally {
+                runCatching { pendingResult?.finish() }
             }
         }
     }
 
+    /** 查询指定小组件当前已绑定的 id 列表 **/
+    private fun widgetIds(context: Context, widgetClass: Class<*>): IntArray? =
+        runCatching {
+            AppWidgetManager.getInstance(context)
+                .getAppWidgetIds(ComponentName(context, widgetClass))
+        }.getOrNull()
+
     /**
-     * 更新所有小组件
+     * 更新所有小组件（空调 + 车辆控制）
      * @param context 上下文对象
+     * @param receiver 触发更新的广播接收器，用于保活，可为空
      */
-    fun updateAllAppWidgets(context: Context) {
+    fun updateAllAppWidgets(
+        context: Context,
+        receiver: BroadcastReceiver? = null,
+    ) {
         CarDataBusDataObserver.notifyDataChanged()
         updateAfterBoot(
+            receiver = receiver,
             context = context,
-            updateAll = { updateAll() },
             widgetClass = AirControlAppWidget::class.java,
+            updateAll = { AirControlAppWidget.updateAll() },
         )
         updateAfterBoot(
+            receiver = receiver,
             context = context,
-            updateAll = { updateAll() },
             widgetClass = CarControlAppWidget::class.java,
+            updateAll = { CarControlAppWidget.updateAll() },
         )
     }
 

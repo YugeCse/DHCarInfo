@@ -2,7 +2,6 @@ package com.car.dh.ui.screen.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,7 +49,6 @@ import com.car.dh.app.DHApplication
 import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.air.AirController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import com.car.dh.ui.screen.base.WidgetBootUpdater
 import com.car.dh.ui.screen.component.ImageButton
 import com.car.dh.ui.screen.component.WidgetUiCompat
 import com.car.dh.utils.ActivityLaunch
@@ -116,7 +114,7 @@ private fun AirControlAppWidgetContent(
         .collectAsState(0L)
     key(dataVersion) {
         val globalConfig = LocalGlobalConfig.current
-        globalConfig.isEditMode = true
+        // globalConfig.isEditMode = true
         val context = LocalContext.current
         val airController = AirController.singleton()
         val isPowerOn = airController.getPower() == 1
@@ -319,7 +317,7 @@ private fun AirControlAppWidgetContent(
                             icon = if (isPowerOn)
                                 R.drawable.ic_air_power_status_on
                             else R.drawable.ic_air_power_status_off,
-                            onClick = airController::toggleFrontDefrost,
+                            onClick = airController::togglePower,
                         )
                         Spacer(GlanceModifier.defaultWeight())
                         FunctionTile(
@@ -327,7 +325,7 @@ private fun AirControlAppWidgetContent(
                             title = "MAX",
                             titleColor = globalConfig.airAppWidgetSubTextColor,
                             selected = isPowerOn,
-                            icon = R.drawable.ic_air_wind_max,
+                            icon = R.drawable.ic_air_wind_min,
                             onClick = { airController.setWindLevel(1) },
                         )
                         Spacer(GlanceModifier.defaultWeight())
@@ -336,7 +334,7 @@ private fun AirControlAppWidgetContent(
                             title = "MIN",
                             titleColor = globalConfig.airAppWidgetSubTextColor,
                             selected = isPowerOn,
-                            icon = R.drawable.ic_air_wind_min,
+                            icon = R.drawable.ic_air_wind_max,
                             onClick = { airController.setWindLevel(AirController.WIND_MAX) },
                         )
                         Spacer(GlanceModifier.defaultWeight())

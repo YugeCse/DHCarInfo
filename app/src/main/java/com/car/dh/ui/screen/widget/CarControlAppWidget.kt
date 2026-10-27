@@ -2,13 +2,14 @@ package com.car.dh.ui.screen.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -38,7 +39,6 @@ import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.base.CarBaseController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.screen.base.SkyController
-import com.car.dh.ui.screen.base.WidgetBootUpdater
 import com.car.dh.ui.screen.component.ImageButton
 import com.car.dh.ui.screen.component.WidgetSectionHeader
 import com.car.dh.ui.screen.component.WidgetUiCompat
@@ -78,7 +78,18 @@ class CarControlAppWidgetImpl : GlanceAppWidget() {
 
     @SuppressLint("RestrictedApi")
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        provideContent { CarControlAppWidgetContent() }
+        provideContent {
+            var currentSize = LocalSize.current
+            if (!LocalInspectionMode.current &&
+                currentSize.width < 60.dp
+            ) {
+                // 部分桌面在预绑定阶段测量尺寸异常，回退到常规 4x3 尺寸
+                var maxSize = maxOf(currentSize.width, currentSize.height)
+                if (maxSize < 350.dp) maxSize = 370.dp
+                currentSize = DpSize(maxSize, maxSize + 30.dp)
+            }
+            CarControlAppWidgetContent(containerSize = currentSize)
+        }
     }
 
 }
@@ -92,7 +103,7 @@ class CarControlAppWidgetImpl : GlanceAppWidget() {
  */
 @Composable
 @SuppressLint("RestrictedApi", "ResourceType")
-private fun CarControlAppWidgetContent() {
+private fun CarControlAppWidgetContent(containerSize: DpSize = DpSize(400.dp, 320.dp)) {
     val dataVersion by CarDataBusDataObserver
         .dataChangeFlow
         .collectAsState(0L)
@@ -104,8 +115,8 @@ private fun CarControlAppWidgetContent() {
 
         // —— 自适应尺寸 ——
         // 图标已做到自解释，不放文字标签，省出的纵向空间用于加大按钮
-        val width = LocalSize.current.width
-        val height = LocalSize.current.height
+        val width = containerSize.width
+        val height = containerSize.height
         val outerPadding = (width * 0.05f).coerceIn(12.dp, 20.dp)
         val modeTileSize = (width * 0.22f).coerceIn(52.dp, 70.dp)
         val modeTileIcon = modeTileSize * 0.13f
