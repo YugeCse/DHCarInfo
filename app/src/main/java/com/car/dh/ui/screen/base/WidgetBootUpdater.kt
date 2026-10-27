@@ -5,10 +5,15 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.util.Log
+import com.car.dh.ui.screen.widget.AirControlAppWidget
+import com.car.dh.ui.screen.widget.AirControlAppWidget.Companion.updateAll
+import com.car.dh.ui.screen.widget.CarControlAppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 /** 小组件开机自恢复工具 **/
 object WidgetBootUpdater {
@@ -36,19 +41,17 @@ object WidgetBootUpdater {
      * 通过 goAsync 保持接收器进程存活直到轮询结束。
      */
     fun updateAfterBoot(
-        receiver: BroadcastReceiver,
         context: Context,
         widgetClass: Class<*>,
         updateAll: suspend () -> Unit,
     ) {
         val appContext = context.applicationContext
-        val pendingResult = receiver.goAsync()
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 runCatching { updateAll() }
                 var attempts = 0
                 while (attempts < MAX_RETRY_COUNT) {
-                    delay(RETRY_INTERVAL_MS)
+                    delay(RETRY_INTERVAL_MS.milliseconds)
                     val ids = runCatching {
                         AppWidgetManager.getInstance(appContext)
                             .getAppWidgetIds(ComponentName(appContext, widgetClass))
@@ -60,9 +63,28 @@ object WidgetBootUpdater {
                     }
                     attempts++
                 }
-            } finally {
-                pendingResult.finish()
+            } catch (e: Exception) {
+                Log.e("updateAfterBoot", "抱歉，更新小组件失败：${e.message}")
             }
         }
     }
+
+    /**
+     * 更新所有小组件
+     * @param context 上下文对象
+     */
+    fun updateAllAppWidgets(context: Context) {
+        CarDataBusDataObserver.notifyDataChanged()
+        updateAfterBoot(
+            context = context,
+            updateAll = { updateAll() },
+            widgetClass = AirControlAppWidget::class.java,
+        )
+        updateAfterBoot(
+            context = context,
+            updateAll = { updateAll() },
+            widgetClass = CarControlAppWidget::class.java,
+        )
+    }
+
 }

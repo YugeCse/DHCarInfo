@@ -1,4 +1,4 @@
-package com.car.dh.ui.screen.base
+package com.car.dh.ui.screen.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -31,12 +32,13 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
 import com.car.dh.app.LocalGlobalConfig
+import com.car.dh.ui.screen.base.CarBaseController
+import com.car.dh.ui.screen.base.CarDataBusDataObserver
+import com.car.dh.ui.screen.base.SkyController
+import com.car.dh.ui.screen.base.WidgetBootUpdater
 import com.car.dh.ui.screen.component.ImageButton
 import com.car.dh.ui.screen.component.WidgetSectionHeader
 import com.car.dh.ui.screen.component.WidgetUiCompat
@@ -49,19 +51,6 @@ import kotlinx.coroutines.flow.update
 class CarControlAppWidget : GlanceAppWidgetReceiver() {
 
     override val glanceAppWidget: GlanceAppWidget = impl
-
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        if (intent.action in WidgetBootUpdater.BOOT_ACTIONS) {
-            CarDataBusDataObserver.notifyDataChanged()
-            WidgetBootUpdater.updateAfterBoot(
-                receiver = this,
-                context = context,
-                widgetClass = CarControlAppWidget::class.java,
-                updateAll = { CarControlAppWidget.updateAll() },
-            )
-        }
-    }
 
     companion object {
 
@@ -264,8 +253,8 @@ private fun CarControlAppWidgetContent() {
 @Composable
 @SuppressLint("RestrictedApi")
 private fun ModeTile(
-    size: androidx.compose.ui.unit.Dp,
-    iconPadding: androidx.compose.ui.unit.Dp,
+    size: Dp,
+    iconPadding: Dp,
     title: String?,
     titleColor: Color,
     selected: Boolean,

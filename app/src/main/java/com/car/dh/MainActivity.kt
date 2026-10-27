@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.car.dh.app.GlobalConfig
-import com.car.dh.ui.screen.air.AirControlAppWidget
+import com.car.dh.ui.screen.widget.AirControlAppWidget
 import com.car.dh.ui.screen.air.AirControlScreen
 import com.car.dh.ui.screen.base.CarBaseControlScreen
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
@@ -127,16 +127,16 @@ class MainActivity : ComponentActivity() {
     private fun handleAliasIntent(intent: Intent, onLaunched: () -> Unit = {}) {
         val component = intent.component ?: return
         val className = component.className
+        var shouldFinishActivity = false
         when {
-            className.endsWith("MainActivityDefault") -> {
-                GlobalConfig.initConfigs() //初始化配置数据
-                CoroutineScope(Dispatchers.Default)
-                    .launch { AirControlAppWidget.updateAll() }
-                finish() //关掉当前页面
-            }
+            className.endsWith("MainActivityDefault") ->
+                shouldFinishActivity = true
 
             className.endsWith("MainActivityDefault2") -> onLaunched()
         }
+        CoroutineScope(Dispatchers.Default)
+            .launch { AirControlAppWidget.updateAll() }
+        if (shouldFinishActivity) finish() //关掉当前页面
     }
 
 }

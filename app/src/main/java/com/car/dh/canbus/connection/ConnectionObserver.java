@@ -7,5 +7,7 @@ import com.car.dh.canbus.ipc.IRemoteToolkit;
 public interface ConnectionObserver {
     void onConnected(IRemoteToolkit iRemoteToolkit);
 
-    void onDisconnected();
+    default void onDisconnected() {
+    }
+
 }

@@ -2,6 +2,7 @@ package com.car.dh.ui.screen.air
 
 import com.car.dh.canbus.data.DataCanbus
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
+import com.car.dh.ui.screen.widget.AirControlAppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

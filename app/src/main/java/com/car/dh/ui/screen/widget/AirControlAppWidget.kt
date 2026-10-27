@@ -1,4 +1,4 @@
-package com.car.dh.ui.screen.air
+package com.car.dh.ui.screen.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -48,6 +48,7 @@ import androidx.glance.unit.ColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
 import com.car.dh.app.LocalGlobalConfig
+import com.car.dh.ui.screen.air.AirController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.screen.base.WidgetBootUpdater
 import com.car.dh.ui.screen.component.ImageButton
@@ -58,19 +59,6 @@ import com.car.dh.utils.ActivityLaunch
 class AirControlAppWidget : GlanceAppWidgetReceiver() {
 
     override val glanceAppWidget: GlanceAppWidget = impl
-
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        if (intent.action in WidgetBootUpdater.BOOT_ACTIONS) {
-            CarDataBusDataObserver.notifyDataChanged()
-            WidgetBootUpdater.updateAfterBoot(
-                receiver = this,
-                context = context,
-                updateAll = { updateAll() },
-                widgetClass = AirControlAppWidget::class.java,
-            )
-        }
-    }
 
     companion object {
 
