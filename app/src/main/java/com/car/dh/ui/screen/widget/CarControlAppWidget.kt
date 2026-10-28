@@ -121,7 +121,7 @@ private fun CarControlAppWidgetContent() {
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val tileBtnSize = (width * 0.15f).coerceIn(40.dp, 54.dp)
+                val tileBtnSize = (width * 0.25f).coerceIn(40.dp, 54.dp)
                 val iconPadding = 4.dp
                 ModeTile(
                     modifier = GlanceModifier.size(tileBtnSize),
@@ -174,7 +174,7 @@ private fun CarControlAppWidgetContent() {
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val tileBtnSize = (width * 0.15f).coerceIn(40.dp, 54.dp)
+                val tileBtnSize = (width * 0.25f).coerceIn(40.dp, 54.dp)
                 val iconPadding = 4.dp
                 ModeTile(
                     modifier = GlanceModifier.size(tileBtnSize),
