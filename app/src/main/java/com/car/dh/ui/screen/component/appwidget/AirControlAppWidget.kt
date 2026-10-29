@@ -1,4 +1,4 @@
-package com.car.dh.ui.screen.widget
+package com.car.dh.ui.screen.component.appwidget
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -49,8 +49,9 @@ import com.car.dh.app.DHApplication
 import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.air.AirController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import com.car.dh.ui.screen.component.ImageButton
-import com.car.dh.ui.screen.component.WidgetUiCompat
+import com.car.dh.ui.screen.component.glance.ImageButton
+import com.car.dh.ui.screen.component.glance.AppWidgetUiCompat
+import com.car.dh.ui.screen.component.glance.FunctionTileButton
 import com.car.dh.utils.ActivityLaunch
 
 /** 空调控制微件BroadcastReceiver **/
@@ -139,7 +140,7 @@ private fun AirControlAppWidgetContent(
         // val tempTextRight = formatTemp(tempRight)
         Box(
             modifier = GlanceModifier
-                .cornerRadius(WidgetUiCompat.backgroundRadius(context))
+                .cornerRadius(AppWidgetUiCompat.backgroundRadius(context))
                 .run {
                     if (!globalConfig.isAirAppWidgetRenderBackground) this
                     else background(ImageProvider(R.drawable.bg_app_widget))
@@ -157,31 +158,31 @@ private fun AirControlAppWidgetContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "A/C",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = isAcOn,
+                        active = isAcOn,
                         icon = if (isAcOn)
                             R.drawable.ic_air_ac_status_on
                         else R.drawable.ic_air_ac_status_off,
                         onClick = airController::toggleFrontDefrost,
                     )
                     Spacer(GlanceModifier.defaultWeight())
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "除雾",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = isPowerOn && isFrontDefrost,
+                        active = isPowerOn && isFrontDefrost,
                         icon = R.drawable.ic_air_front_defrost,
                         onClick = airController::toggleFrontDefrost,
                     )
                     Spacer(GlanceModifier.defaultWeight())
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "循环",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = cycleMode == 1,
+                        active = cycleMode == 1,
                         icon = if (cycleMode == 1)
                             R.drawable.ic_air_mode_in_cycle
                         else R.drawable.ic_air_mode_out_cycle,
@@ -192,11 +193,11 @@ private fun AirControlAppWidgetContent(
                             (airController.getBlowUp() == 1 ||
                                     airController.getBlowBody() == 1 ||
                                     airController.getBlowFoot() == 1)
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "风向",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = isDirAvailable,
+                        active = isDirAvailable,
                         icon = when {
                             airController.getBlowUp() == 1 ->
                                 R.drawable.ic_air_dir_face
@@ -252,40 +253,40 @@ private fun AirControlAppWidgetContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "开关",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = isPowerOn,
+                        active = isPowerOn,
                         icon = if (isPowerOn)
                             R.drawable.ic_air_power_status_on
                         else R.drawable.ic_air_power_status_off,
                         onClick = airController::togglePower,
                     )
                     Spacer(GlanceModifier.defaultWeight())
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "MIN",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = false,
+                        active = false,
                         icon = R.drawable.ic_air_wind_min,
                         onClick = { airController.setWindLevel(1) },
                     )
                     Spacer(GlanceModifier.defaultWeight())
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "MAX",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = false,
+                        active = false,
                         icon = R.drawable.ic_air_wind_max,
                         onClick = { airController.setWindLevel(AirController.WIND_MAX) },
                     )
                     Spacer(GlanceModifier.defaultWeight())
-                    FunctionTile(
+                    FunctionTileButton(
                         size = tileBtnSize,
                         title = "APP",
                         titleColor = globalConfig.airAppWidgetSubTextColor,
-                        selected = false,
+                        active = false,
                         icon = R.drawable.ic_relation_air_app,
                         onClick = { ActivityLaunch.openSelfApp() },
                     )
@@ -466,43 +467,6 @@ private fun TempStepperPill(
         )
         Spacer(GlanceModifier.width(6.dp))
     }
-}
-
-/**
- * 底部功能开关块按钮
- * @param size 尺寸
- * @param title 标题
- * @param titleColor 标题颜色
- * @param selected 是否被选中
- * @param icon 图标
- * @param onClick 点击事件
- */
-@Composable
-@SuppressLint("RestrictedApi")
-private fun FunctionTile(
-    size: Dp,
-    title: String,
-    titleColor: Color,
-    selected: Boolean,
-    icon: Int,
-    onClick: () -> Unit,
-) {
-    ImageButton(
-        modifier = GlanceModifier
-            .background(
-                ImageProvider(
-                    if (selected) R.drawable.bg_btn_active
-                    else R.drawable.bg_btn_inactive
-                )
-            )
-            .size(size)
-            .padding(size * 0.17f),
-        title = title,
-        titleColor = titleColor,
-        active = true,
-        activeIcon = icon,
-        onClick = onClick,
-    )
 }
 
 /**

@@ -8,8 +8,8 @@ import com.car.dh.canbus.connection.MsToolkitConnection
 import com.car.dh.canbus.ipc.IRemoteToolkit
 import com.car.dh.canbus.up.ConnectionCanUp
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import com.car.dh.ui.screen.widget.AirControlAppWidget
-import com.car.dh.ui.screen.widget.CarControlAppWidget
+import com.car.dh.ui.screen.component.appwidget.AirControlAppWidget
+import com.car.dh.ui.screen.component.appwidget.CarControlAppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.car.dh.data.AirControlStateInfo
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import com.car.dh.ui.screen.widget.AirControlAppWidget
+import com.car.dh.ui.screen.component.appwidget.AirControlAppWidget
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

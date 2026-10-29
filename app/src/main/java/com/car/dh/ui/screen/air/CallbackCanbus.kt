@@ -6,7 +6,7 @@ import com.car.dh.canbus.handler.HandlerCanbus
 import com.car.dh.canbus.callback.ModuleCallbackCanbusProxy
 import com.car.dh.canbus.ipc.IModuleCallback
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import com.car.dh.ui.screen.widget.AirControlAppWidget
+import com.car.dh.ui.screen.component.appwidget.AirControlAppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

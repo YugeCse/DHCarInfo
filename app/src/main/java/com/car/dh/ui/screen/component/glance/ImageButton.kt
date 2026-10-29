@@ -1,4 +1,4 @@
-package com.car.dh.ui.screen.component
+package com.car.dh.ui.screen.component.glance
 
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
@@ -27,6 +27,17 @@ import androidx.glance.unit.ColorProvider
 import com.car.dh.ui.theme.DHCarInfoTheme
 
 
+/**
+ * 图片按钮控件
+ * @param modifier 修饰器
+ * @param margin 外间距
+ * @param title 标题
+ * @param titleColor 标题颜色
+ * @param active 是否是激活状态
+ * @param useColorTint 是否使用颜色Tint，默认：true
+ * @param activeIcon 激活时的图标显示
+ * @param inactiveIcon 未激活时的图标显示
+ */
 @Composable
 @SuppressLint("RestrictedApi")
 fun ImageButton(
@@ -70,7 +81,7 @@ fun ImageButton(
             contentScale = ContentScale.Fit,
             colorFilter = if (!useColorTint) null else ColorFilter.tint(ColorProvider(Color.White)),
         )
-        if (!title.isNullOrEmpty()) {
+        if (!title?.trim().isNullOrEmpty()) {
             Spacer(GlanceModifier.height(3.dp))
             Text(
                 text = title,

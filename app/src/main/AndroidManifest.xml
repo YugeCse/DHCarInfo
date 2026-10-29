@@ -48,7 +48,7 @@
         </activity>
 
         <receiver
-            android:name=".ui.screen.widget.AirControlAppWidget"
+            android:name=".ui.screen.component.appwidget.AirControlAppWidget"
             android:exported="false">
 
             <meta-data
@@ -59,7 +59,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".ui.screen.widget.CarControlAppWidget"
+            android:name=".ui.screen.component.appwidget.CarControlAppWidget"
             android:exported="false">
             <meta-data
                 android:name="android.appwidget.provider"

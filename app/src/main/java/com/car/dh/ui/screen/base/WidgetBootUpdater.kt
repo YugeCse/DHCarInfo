@@ -6,8 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.car.dh.ui.screen.widget.AirControlAppWidget
-import com.car.dh.ui.screen.widget.CarControlAppWidget
+import com.car.dh.ui.screen.component.appwidget.AirControlAppWidget
+import com.car.dh.ui.screen.component.appwidget.CarControlAppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
