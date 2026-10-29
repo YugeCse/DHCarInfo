@@ -3,6 +3,7 @@ package com.car.dh.ui.screen.component.appwidget
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -46,12 +47,14 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.car.dh.R
 import com.car.dh.app.DHApplication
+import com.car.dh.app.GlobalConfig
 import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.air.AirController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
 import com.car.dh.ui.screen.component.glance.ImageButton
 import com.car.dh.ui.screen.component.glance.AppWidgetUiCompat
 import com.car.dh.ui.screen.component.glance.FunctionTileButton
+import com.car.dh.ui.theme.DHCarInfoTheme
 import com.car.dh.utils.ActivityLaunch
 
 /** 空调控制微件BroadcastReceiver **/
@@ -484,4 +487,9 @@ private fun formatTemp(temp: Float): String = when (temp) {
 @Composable
 @Preview(widthDp = 400, heightDp = 300)
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun AirControlAppWidgetContentPreview() = AirControlAppWidgetContent()
+private fun AirControlAppWidgetContentPreview() {
+    CompositionLocalProvider(
+        LocalGlobalConfig provides
+                GlobalConfig.newInstance(LocalContext.current)
+    ) { AirControlAppWidgetContent() }
+}

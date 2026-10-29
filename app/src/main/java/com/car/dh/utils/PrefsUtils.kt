@@ -4,21 +4,14 @@ import android.content.Context
 import androidx.core.content.edit
 import com.car.dh.app.DHApplication
 
-/** 配置信息存储类 **/
-internal class PrefsUtils private constructor() {
-
-    companion object {
-
-        private val _instance by lazy { PrefsUtils() }
-
-        @JvmStatic
-        fun singleton() = _instance
-
-    }
+/**
+ * 配置信息存储类
+ * @param context 上下文对象
+ */
+internal class PrefsUtils(private val context: Context) {
 
     private val prefs by lazy {
-        DHApplication.singleton()
-            .getSharedPreferences("dh_config", Context.MODE_PRIVATE)
+        context.getSharedPreferences("dh_config", Context.MODE_PRIVATE)
     }
 
     fun clear() = prefs.edit(true) { this.clear() }

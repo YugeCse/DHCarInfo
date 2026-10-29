@@ -1,5 +1,6 @@
 package com.car.dh.app
 
+import android.content.Context
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import com.car.dh.ui.screen.base.CarBaseController
@@ -9,12 +10,19 @@ import com.car.dh.utils.PrefsUtils
 import com.car.dh.utils.toColor
 import com.car.dh.utils.toHexCode
 
-/** 全局配置类 **/
-class GlobalConfig private constructor() {
+/**
+ * 全局配置类
+ * @param context 上下文对象
+ */
+class GlobalConfig private constructor(
+    private val context: Context
+) {
 
     companion object {
 
-        private val _instance by lazy { GlobalConfig() }
+        private val _instance by lazy {
+            GlobalConfig(DHApplication.singleton())
+        }
 
         @JvmStatic
         fun singleton(): GlobalConfig = _instance
@@ -31,12 +39,19 @@ class GlobalConfig private constructor() {
             }.onFailure { ex -> ex.printStackTrace() }
         }
 
+        /**
+         * 创建一个新实例
+         * @param context 上下文对象
+         */
+        @JvmStatic
+        fun newInstance(context: Context): GlobalConfig = GlobalConfig(context)
+
     }
 
     /** 是否是编辑模式 **/
     var isEditMode = false
 
-    private val prefs by lazy { PrefsUtils.singleton() }
+    private val prefs by lazy { PrefsUtils(context) }
 
     /** 获取或设置车机系统语言 **/
     var carSystemLanguage: Int = 0

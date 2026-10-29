@@ -20,6 +20,7 @@ constraintlayout = "2.1.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-glance = { module = "androidx.glance:glance", version.ref = "glanceAppwidgetPreview" }
 androidx-glance-appwidget-preview = { module = "androidx.glance:glance-appwidget-preview", version.ref = "glanceAppwidgetPreview" }
 androidx-glance-glance-preview = { module = "androidx.glance:glance-preview", version.ref = "glanceAppwidgetPreview" }
 androidx-lifecycle-lifecycle-viewmodel2 = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidxLifecycleViewmodelVersion" }
