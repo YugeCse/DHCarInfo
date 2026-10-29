@@ -32,6 +32,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import com.car.dh.R
 import com.car.dh.app.DHApplication
+import com.car.dh.app.GlobalConfig
 import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.base.CarBaseController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
@@ -44,6 +45,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.ranges.coerceIn
+import kotlin.times
 
 /** 汽车控制小组件 **/
 class CarControlAppWidget : GlanceAppWidgetReceiver() {
@@ -110,98 +113,143 @@ private fun CarControlAppWidgetContent() {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val tileBtnSize =
+                (width * 0.25f).coerceIn(40.dp, 54.dp)
             Spacer(GlanceModifier.defaultWeight())
-            SectionTitleHeader(
-                title = "驾驶模式",
-                fontSize = 14.sp,
-                titleColor = globalConfig.airAppWidgetSubTextColor,
+            DriveModeControlView(
+                globalConfig = globalConfig,
+                driveModeInt = driveModeInt,
+                carControl = carControl,
+                tileBtnSize = tileBtnSize,
             )
-            Row(
-                modifier = GlanceModifier
-                    .padding(top = 8.dp, start = 12.dp, end = 12.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val tileBtnSize = (width * 0.25f).coerceIn(40.dp, 54.dp)
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = driveModeInt == 0,
-                    icon = R.drawable.ic_drive_mode_default,
-                    onClick = {
-                        carControl.setDriveMode(0)
-                        CarControlAppWidget.updateDriveModeInt(0)
-                    },
-                )
-                Spacer(GlanceModifier.defaultWeight())
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = driveModeInt == 1,
-                    icon = R.drawable.ic_drive_mode_eco,
-                    onClick = {
-                        carControl.setDriveMode(1)
-                        CarControlAppWidget.updateDriveModeInt(1)
-                    },
-                )
-                Spacer(GlanceModifier.defaultWeight())
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = driveModeInt == 2,
-                    icon = R.drawable.ic_drive_mode_run,
-                    onClick = {
-                        carControl.setDriveMode(2)
-                        CarControlAppWidget.updateDriveModeInt(2)
-                    },
-                )
-            }
-            SectionTitleHeader(
-                title = "天窗控制",
-                modifier = GlanceModifier.padding(top = 12.dp),
-                fontSize = 14.sp,
-                titleColor = globalConfig.airAppWidgetSubTextColor,
+            SkyWindowControlView(
+                globalConfig = globalConfig,
+                tileBtnSize = tileBtnSize,
             )
-            Row(
-                modifier = GlanceModifier
-                    .padding(top = 8.dp, start = 12.dp, end = 12.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val tileBtnSize = (width * 0.25f).coerceIn(40.dp, 54.dp)
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = false,
-                    icon = R.drawable.ic_sky_door_open,
-                    onClick = SkyController::open,
-                )
-                Spacer(GlanceModifier.defaultWeight())
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = false,
-                    icon = R.drawable.ic_sky_door_close,
-                    onClick = SkyController::close,
-                )
-                Spacer(GlanceModifier.defaultWeight())
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = false,
-                    icon = R.drawable.ic_sky_door_stop,
-                    onClick = SkyController::stop,
-                )
-                Spacer(GlanceModifier.defaultWeight())
-                FunctionTileButton(
-                    size = tileBtnSize,
-                    titleColor = globalConfig.airAppWidgetSubTextColor,
-                    active = false,
-                    icon = R.drawable.ic_sky_door_fresh_air,
-                    onClick = SkyController::freshAir,
-                )
-            }
             Spacer(GlanceModifier.defaultWeight())
+        }
+    }
+}
+
+/**
+ * 驾驶模式控制视图
+ * @param modifier 修饰器
+ * @param tileBtnSize 按钮尺寸
+ * @param globalConfig 全局配置
+ * @param driveModeInt 驾驶模式
+ * @param carControl 车辆控制对象
+ */
+@Composable
+private fun DriveModeControlView(
+    modifier: GlanceModifier = GlanceModifier,
+    tileBtnSize: Dp,
+    globalConfig: GlobalConfig,
+    driveModeInt: Int,
+    carControl: CarBaseController
+) {
+    Column(GlanceModifier.then(modifier).fillMaxWidth()) {
+        SectionTitleHeader(
+            title = "驾驶模式",
+            fontSize = 14.sp,
+            titleColor = globalConfig.airAppWidgetSubTextColor,
+        )
+        Row(
+            modifier = GlanceModifier
+                .padding(top = 8.dp, start = 12.dp, end = 12.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = driveModeInt == 0,
+                icon = R.drawable.ic_drive_mode_default,
+                onClick = {
+                    carControl.setDriveMode(0)
+                    CarControlAppWidget.updateDriveModeInt(0)
+                },
+            )
+            Spacer(GlanceModifier.defaultWeight())
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = driveModeInt == 1,
+                icon = R.drawable.ic_drive_mode_eco,
+                onClick = {
+                    carControl.setDriveMode(1)
+                    CarControlAppWidget.updateDriveModeInt(1)
+                },
+            )
+            Spacer(GlanceModifier.defaultWeight())
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = driveModeInt == 2,
+                icon = R.drawable.ic_drive_mode_run,
+                onClick = {
+                    carControl.setDriveMode(2)
+                    CarControlAppWidget.updateDriveModeInt(2)
+                },
+            )
+        }
+    }
+}
+
+/**
+ * 天窗控制视图界面
+ * @param tileBtnSize 按钮尺寸
+ * @param globalConfig 全局配置读香
+ */
+@Composable
+private fun SkyWindowControlView(
+    modifier: GlanceModifier = GlanceModifier,
+    tileBtnSize: Dp,
+    globalConfig: GlobalConfig,
+) {
+    Column(GlanceModifier.then(modifier).fillMaxWidth()) {
+        SectionTitleHeader(
+            title = "天窗控制",
+            modifier = GlanceModifier.padding(top = 12.dp),
+            fontSize = 14.sp,
+            titleColor = globalConfig.airAppWidgetSubTextColor,
+        )
+        Row(
+            modifier = GlanceModifier
+                .padding(top = 8.dp, start = 12.dp, end = 12.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = false,
+                icon = R.drawable.ic_sky_door_open,
+                onClick = SkyController::open,
+            )
+            Spacer(GlanceModifier.defaultWeight())
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = false,
+                icon = R.drawable.ic_sky_door_close,
+                onClick = SkyController::close,
+            )
+            Spacer(GlanceModifier.defaultWeight())
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = false,
+                icon = R.drawable.ic_sky_door_stop,
+                onClick = SkyController::stop,
+            )
+            Spacer(GlanceModifier.defaultWeight())
+            FunctionTileButton(
+                size = tileBtnSize,
+                titleColor = globalConfig.airAppWidgetSubTextColor,
+                active = false,
+                icon = R.drawable.ic_sky_door_fresh_air,
+                onClick = SkyController::freshAir,
+            )
         }
     }
 }
