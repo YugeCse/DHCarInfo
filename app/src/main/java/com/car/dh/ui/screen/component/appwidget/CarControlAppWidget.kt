@@ -28,6 +28,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import com.car.dh.R
@@ -114,7 +115,8 @@ private fun CarControlAppWidgetContent() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val tileBtnSize =
-                (width * 0.25f).coerceIn(40.dp, 54.dp)
+                (width * 0.5f).coerceIn(40.dp, 80.dp)
+            Spacer(GlanceModifier.height(12.dp))
             Spacer(GlanceModifier.defaultWeight())
             DriveModeControlView(
                 globalConfig = globalConfig,

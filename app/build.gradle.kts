@@ -4,6 +4,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("/Users/hwang/workspace/Coding/tools/apk-signer/hwang.jks")
+            storePassword = "Cosecant"
+            keyAlias = "cosecant"
+            keyPassword = "Cosecant"
+        }
+    }
     namespace = "com.car.dh"
     compileSdk {
         version = release(37)
@@ -15,6 +23,7 @@ android {
         versionCode = 2
         versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig = signingConfigs.getByName("debug")
     }
     buildTypes {
         release {

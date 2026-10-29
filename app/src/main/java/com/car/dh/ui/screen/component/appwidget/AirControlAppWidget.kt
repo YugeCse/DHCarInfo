@@ -51,10 +51,9 @@ import com.car.dh.app.GlobalConfig
 import com.car.dh.app.LocalGlobalConfig
 import com.car.dh.ui.screen.air.AirController
 import com.car.dh.ui.screen.base.CarDataBusDataObserver
-import com.car.dh.ui.screen.component.glance.ImageButton
 import com.car.dh.ui.screen.component.glance.AppWidgetUiCompat
 import com.car.dh.ui.screen.component.glance.FunctionTileButton
-import com.car.dh.ui.theme.DHCarInfoTheme
+import com.car.dh.ui.screen.component.glance.ImageButton
 import com.car.dh.utils.ActivityLaunch
 
 /** 空调控制微件BroadcastReceiver **/
@@ -155,6 +154,7 @@ private fun AirControlAppWidgetContent(
                 modifier = GlanceModifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(GlanceModifier.height(12.dp))
                 // 功能按键排
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
@@ -221,7 +221,7 @@ private fun AirControlAppWidgetContent(
                 TempStepperPill(
                     modifier = GlanceModifier.fillMaxWidth(),
                     height = pillHeight,
-                    btnSize = pillBtnSize,
+                    btnSize = tileBtnSize,
                     valueFontSize = pillValueFontSize,
                     valueText = tempTextLeft,
                     valueColor = ColorProvider(
@@ -237,10 +237,8 @@ private fun AirControlAppWidgetContent(
                 WindLevelBar(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .height(pillHeight)
-                        .background(ImageProvider(R.drawable.bg_pill))
-                        .padding(horizontal = 8.dp),
-                    pillBtnSize = pillBtnSize,
+                        .height(pillHeight),
+                    btnSize = tileBtnSize,
                     level = if (isPowerOn) windLevel else 0,
                     maxLevel = AirController.WIND_MAX,
                     activeColor = globalConfig.airAppWidgetMarkOvalSelectColor,
@@ -303,6 +301,7 @@ private fun AirControlAppWidgetContent(
  * 风量档位条：业内常见的阶梯高度条样式，高度随档位递增；点击档位设置对应风量
  * @param modifier 修饰器
  * @param level 当前风量等级
+ * @param enabled 是否激活
  * @param maxLevel 最大风量
  * @param activeColor 激活颜色
  * @param inactiveColor 未激活颜色
@@ -318,79 +317,82 @@ private fun WindLevelBar(
     maxLevel: Int,
     activeColor: Color,
     inactiveColor: Color,
-    pillBtnSize: Dp,
-    isPowerOn: Boolean = false,
+    btnSize: Dp,
+    enabled: Boolean = false,
     onLevelClick: (Int) -> Unit = {},
     onDecrementLevelClick: () -> Unit = {},
     onIncrementLevelClick: () -> Unit = {}
 ) {
+    val btnBg = ImageProvider(
+        if (enabled)
+            R.drawable.bg_btn_active
+        else R.drawable.bg_btn_inactive
+    )
     Row(
         modifier = GlanceModifier.then(modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
         ImageButton(
             modifier = GlanceModifier
-                .background(
-                    ImageProvider(
-                        if (isPowerOn)
-                            R.drawable.bg_btn_active
-                        else R.drawable.bg_btn_inactive
-                    )
-                )
-                .size(pillBtnSize)
-                .padding(pillBtnSize * 0.22f),
-            active = isPowerOn,
+                .background(btnBg)
+                .size(btnSize)
+                .padding(btnSize * 0.22f),
+            active = enabled,
             activeIcon = R.drawable.ic_widget_minus,
-            onClick = { if (isPowerOn) onDecrementLevelClick() },
+            onClick = { if (enabled) onDecrementLevelClick() },
         )
+        Spacer(GlanceModifier.width(8.dp))
         Row(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(horizontal = 6.dp),
-            verticalAlignment = Alignment.Bottom
+                .height(btnSize)
+                .background(ImageProvider(R.drawable.bg_pill)),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(maxLevel) { index ->
-                val barHeight =
-                    6.dp + 12.dp * (index.toFloat() / (maxLevel - 1)
-                        .coerceAtLeast(1))
-                // 外层为 24dp 高的透明触控区，避免档位条太矮点不中
-                Box(
-                    modifier = GlanceModifier
-                        .defaultWeight()
-                        .height(24.dp)
-                        .clickable { if (isPowerOn) onLevelClick(index + 1) },
-                    contentAlignment = Alignment.BottomCenter
-                ) {
+            Row(
+                modifier = GlanceModifier
+                    .padding(horizontal = 8.dp)
+                    .defaultWeight(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                repeat(maxLevel) { index ->
+                    val barHeight =
+                        6.dp + 12.dp * (index.toFloat() / (maxLevel - 1)
+                            .coerceAtLeast(1))
+                    // 外层为 24dp 高的透明触控区，避免档位条太矮点不中
                     Box(
                         modifier = GlanceModifier
-                            .fillMaxWidth()
-                            .height(barHeight)
-                            .cornerRadius(3.dp)
-                            .background(
-                                if (index < level)
-                                    activeColor
-                                else inactiveColor
-                            ),
-                        content = {}
-                    )
+                            .defaultWeight()
+                            .height(24.dp)
+                            .clickable { if (enabled) onLevelClick(index + 1) },
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Box(
+                            modifier = GlanceModifier
+                                .fillMaxWidth()
+                                .height(barHeight)
+                                .cornerRadius(3.dp)
+                                .background(
+                                    if (index < level)
+                                        activeColor
+                                    else inactiveColor
+                                ),
+                            content = {}
+                        )
+                    }
+                    if (index != maxLevel - 1) Spacer(GlanceModifier.width(5.dp))
                 }
-                if (index != maxLevel - 1) Spacer(GlanceModifier.width(5.dp))
             }
         }
+        Spacer(GlanceModifier.width(8.dp))
         ImageButton(
             modifier = GlanceModifier
-                .background(
-                    ImageProvider(
-                        if (isPowerOn)
-                            R.drawable.bg_btn_active
-                        else R.drawable.bg_btn_inactive
-                    )
-                )
-                .size(pillBtnSize)
-                .padding(pillBtnSize * 0.22f),
-            active = isPowerOn,
+                .background(btnBg)
+                .size(btnSize)
+                .padding(btnSize * 0.22f),
+            active = enabled,
             activeIcon = R.drawable.ic_widget_plus,
-            onClick = { if (isPowerOn) onIncrementLevelClick() },
+            onClick = { if (enabled) onIncrementLevelClick() },
         )
     }
 }
@@ -419,56 +421,55 @@ private fun TempStepperPill(
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
 ) {
+    val btnBg = ImageProvider(
+        if (enabled)
+            R.drawable.bg_btn_active
+        else R.drawable.bg_btn_inactive
+    )
     Row(
-        modifier = modifier
-            .height(height)
-            .background(ImageProvider(R.drawable.bg_pill)),
+        modifier = modifier.height(height),
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(GlanceModifier.width(6.dp))
         ImageButton(
             modifier = GlanceModifier
-                .background(
-                    ImageProvider(
-                        if (enabled)
-                            R.drawable.bg_btn_active
-                        else R.drawable.bg_btn_inactive
-                    )
-                )
+                .background(btnBg)
                 .size(btnSize)
                 .padding(btnSize * 0.2f),
             active = enabled,
             onClick = onDecrease,
             activeIcon = R.drawable.ic_widget_minus,
         )
-        Text(
-            modifier = GlanceModifier.defaultWeight(),
-            text = valueText,
-            maxLines = 1,
-            style = TextStyle(
-                fontSize = valueFontSize,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = valueColor
+        Spacer(GlanceModifier.width(8.dp))
+        Row(
+            modifier = GlanceModifier
+                .defaultWeight()
+                .height(btnSize)
+                .background(ImageProvider(R.drawable.bg_pill)),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = valueText,
+                maxLines = 1,
+                style = TextStyle(
+                    color = valueColor,
+                    fontSize = valueFontSize,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
             )
-        )
+        }
+        Spacer(GlanceModifier.width(8.dp))
         ImageButton(
             modifier = GlanceModifier
-                .background(
-                    ImageProvider(
-                        if (enabled)
-                            R.drawable.bg_btn_active
-                        else R.drawable.bg_btn_inactive
-                    )
-                )
+                .background(btnBg)
                 .size(btnSize)
                 .padding(btnSize * 0.2f),
             active = enabled,
             onClick = onIncrease,
             activeIcon = R.drawable.ic_widget_plus,
         )
-        Spacer(GlanceModifier.width(6.dp))
     }
 }
 
